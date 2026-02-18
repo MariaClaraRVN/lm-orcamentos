@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      itens_orcamento: {
+        Row: {
+          descricao: string
+          id: string
+          orcamento_id: string
+          quantidade: number
+          valor_unitario: number
+        }
+        Insert: {
+          descricao?: string
+          id?: string
+          orcamento_id: string
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Update: {
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          quantidade?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_orcamento_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamentos: {
+        Row: {
+          cliente_cnpj: string
+          cliente_endereco: string
+          cliente_nome: string
+          created_at: string
+          data: string
+          id: string
+          numero: string
+          observacoes: string
+          total: number
+        }
+        Insert: {
+          cliente_cnpj?: string
+          cliente_endereco?: string
+          cliente_nome?: string
+          created_at?: string
+          data: string
+          id?: string
+          numero: string
+          observacoes?: string
+          total?: number
+        }
+        Update: {
+          cliente_cnpj?: string
+          cliente_endereco?: string
+          cliente_nome?: string
+          created_at?: string
+          data?: string
+          id?: string
+          numero?: string
+          observacoes?: string
+          total?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
