@@ -1,10 +1,13 @@
 import { useState, useRef } from "react";
-import { Plus, Trash2, FileDown, Eye } from "lucide-react";
+import { Plus, Trash2, FileDown, Eye, History } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import OrcamentoPDF, { ItemOrcamento, DadosOrcamento } from "@/components/OrcamentoPDF";
+import { salvarOrcamento } from "@/hooks/useOrcamentos";
+import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -95,6 +98,13 @@ export default function Index() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`orcamento_lm_${Date.now()}.pdf`);
+
+      // Save to database
+      await salvarOrcamento(dados, total);
+      toast({
+        title: "Orçamento salvo!",
+        description: "O orçamento foi salvo no histórico com sucesso.",
+      });
     } finally {
       setGerando(false);
     }
@@ -109,7 +119,15 @@ export default function Index() {
             <span className="text-white font-black text-2xl tracking-wide">L</span>
             <span className="text-[hsl(var(--brand-green-light))] font-black text-2xl">⚡M MANUTENÇÕES</span>
           </div>
-          <span className="text-sm text-gray-400 hidden sm:block">Sistema de Orçamentos</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-400 hidden sm:block">Sistema de Orçamentos</span>
+            <Link to="/historico">
+              <Button variant="outline" size="sm" className="border-[hsl(var(--brand-green-light))] text-[hsl(var(--brand-green-light))] hover:bg-[hsl(var(--brand-green-light))] hover:text-black">
+                <History size={14} className="mr-1" />
+                Histórico
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
