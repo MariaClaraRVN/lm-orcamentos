@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
-import { listarOrcamentos, OrcamentoSalvo } from "@/hooks/useOrcamentos";
+import { listarOrcamentos, excluirOrcamento, OrcamentoSalvo } from "@/hooks/useOrcamentos";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, User, DollarSign, Eye } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, User, DollarSign, Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 const formatMoeda = (valor: number) =>
   Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -10,6 +21,8 @@ const formatMoeda = (valor: number) =>
 export default function Historico() {
   const [orcamentos, setOrcamentos] = useState<OrcamentoSalvo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletandoId, setDeletandoId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     listarOrcamentos().then((list) => {
@@ -17,6 +30,23 @@ export default function Historico() {
       setLoading(false);
     });
   }, []);
+
+  const handleExcluir = async () => {
+    if (!confirmId) return;
+    setDeletandoId(confirmId);
+    setConfirmId(null);
+
+    const ok = await excluirOrcamento(confirmId);
+    if (ok) {
+      setOrcamentos((prev) => prev.filter((o) => o.id !== confirmId));
+      toast({ title: "Orçamento excluído", description: "O orçamento foi removido do histórico." });
+    } else {
+      toast({ title: "Erro ao excluir", description: "Não foi possível excluir o orçamento.", variant: "destructive" });
+    }
+    setDeletandoId(null);
+  };
+
+  const orcamentoParaExcluir = orcamentos.find((o) => o.id === confirmId);
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,6 +119,7 @@ export default function Historico() {
                         </span>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-lg font-bold text-foreground">
@@ -105,6 +136,15 @@ export default function Historico() {
                           Abrir
                         </Button>
                       </Link>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={deletandoId === orc.id}
+                        onClick={() => setConfirmId(orc.id)}
+                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
                     </div>
                   </div>
                   {orc.observacoes && (
@@ -118,6 +158,32 @@ export default function Historico() {
           </div>
         )}
       </main>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir orçamento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o orçamento{" "}
+              <strong>#{orcamentoParaExcluir?.numero}</strong>
+              {orcamentoParaExcluir?.cliente_nome && (
+                <> para <strong>{orcamentoParaExcluir.cliente_nome}</strong></>
+              )}
+              ? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExcluir}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <footer className="mt-12 bg-[hsl(var(--brand-black))] text-gray-400 text-xs text-center py-4">
         LM Manutenções © {new Date().getFullYear()} — Sistema de Orçamentos

@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, FileDown, Eye, History } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,15 +22,31 @@ const hoje = () => {
 };
 
 export default function Index() {
-  const [clienteNome, setClienteNome] = useState("");
-  const [clienteCnpj, setClienteCnpj] = useState("");
-  const [clienteEndereco, setClienteEndereco] = useState("");
-  const [observacoes, setObservacoes] = useState("");
-  const [itens, setItens] = useState<ItemOrcamento[]>([
-    { id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 },
-  ]);
+  const location = useLocation();
+  const orcamentoParaEditar = (location.state as any)?.orcamentoParaEditar;
+
+  const [clienteNome, setClienteNome] = useState(orcamentoParaEditar?.clienteNome ?? "");
+  const [clienteCnpj, setClienteCnpj] = useState(orcamentoParaEditar?.clienteCnpj ?? "");
+  const [clienteEndereco, setClienteEndereco] = useState(orcamentoParaEditar?.clienteEndereco ?? "");
+  const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
+  const [itens, setItens] = useState<ItemOrcamento[]>(
+    orcamentoParaEditar?.itens?.length
+      ? orcamentoParaEditar.itens
+      : [{ id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 }]
+  );
   const [showPreview, setShowPreview] = useState(false);
   const [gerando, setGerando] = useState(false);
+
+  // Show toast when opened from history
+  useEffect(() => {
+    if (orcamentoParaEditar) {
+      toast({
+        title: "Orçamento reaberto",
+        description: `Dados de "${orcamentoParaEditar.clienteNome || "cliente"}" carregados no formulário.`,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pdfRef = useRef<HTMLDivElement>(null);
 
