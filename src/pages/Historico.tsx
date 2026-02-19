@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listarOrcamentos, OrcamentoSalvo } from "@/hooks/useOrcamentos";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, User, DollarSign } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, User, DollarSign, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const formatMoeda = (valor: number) =>
@@ -89,7 +89,7 @@ export default function Historico() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-lg font-bold text-foreground">
                           <DollarSign size={16} className="text-primary" />
@@ -99,6 +99,12 @@ export default function Historico() {
                           {new Date(orc.created_at).toLocaleString("pt-BR")}
                         </div>
                       </div>
+                      <Link to={`/orcamento/${orc.id}`}>
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                          <Eye size={14} className="mr-1" />
+                          Abrir
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                   {orc.observacoes && (
