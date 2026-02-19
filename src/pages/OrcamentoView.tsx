@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, FileDown, Share2, Copy, Check } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, FileDown, Share2, Check, FilePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrcamentoPDF from "@/components/OrcamentoPDF";
 import { buscarOrcamento, OrcamentoSalvo } from "@/hooks/useOrcamentos";
@@ -10,6 +10,7 @@ import jsPDF from "jspdf";
 
 export default function OrcamentoView() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [orcamento, setOrcamento] = useState<OrcamentoSalvo | null>(null);
   const [loading, setLoading] = useState(true);
   const [gerando, setGerando] = useState(false);
@@ -67,6 +68,21 @@ export default function OrcamentoView() {
       toast({ title: "Link copiado!", description: "O link do orçamento foi copiado para a área de transferência." });
       setTimeout(() => setCopiado(false), 2500);
     }
+  };
+
+  const reabrirNoFormulario = () => {
+    if (!orcamento) return;
+    navigate("/", {
+      state: {
+        orcamentoParaEditar: {
+          clienteNome: orcamento.cliente_nome,
+          clienteCnpj: orcamento.cliente_cnpj,
+          clienteEndereco: orcamento.cliente_endereco,
+          observacoes: orcamento.observacoes,
+          itens: orcamento.itens ?? [],
+        },
+      },
+    });
   };
 
   if (loading) {
@@ -127,6 +143,14 @@ export default function OrcamentoView() {
             </h1>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={reabrirNoFormulario}
+              className="border-muted-foreground text-muted-foreground hover:bg-muted"
+            >
+              <FilePen size={15} className="mr-2" />
+              Reabrir no Formulário
+            </Button>
             <Button
               variant="outline"
               onClick={compartilhar}

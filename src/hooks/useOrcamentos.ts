@@ -91,3 +91,28 @@ export async function buscarOrcamento(id: string): Promise<OrcamentoSalvo | null
 
   return { ...(orcamento as OrcamentoSalvo), itens: itensFormatados };
 }
+
+export async function excluirOrcamento(id: string): Promise<boolean> {
+  // Delete itens first (FK constraint)
+  const { error: itensErr } = await supabase
+    .from("itens_orcamento")
+    .delete()
+    .eq("orcamento_id", id);
+
+  if (itensErr) {
+    console.error("Erro ao excluir itens:", itensErr);
+    return false;
+  }
+
+  const { error } = await supabase
+    .from("orcamentos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao excluir orçamento:", error);
+    return false;
+  }
+
+  return true;
+}
