@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileDown, Share2, Check, FilePen } from "lucide-react";
+import { ArrowLeft, FileDown, Share2, Check, FilePen, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrcamentoPDF from "@/components/OrcamentoPDF";
 import { buscarOrcamento, OrcamentoSalvo } from "@/hooks/useOrcamentos";
 import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+
+const sanitizeFileName = (name: string) =>
+  name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
 
 export default function OrcamentoView() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +28,10 @@ export default function OrcamentoView() {
     });
   }, [id]);
 
+  const nomeExibicao = orcamento
+    ? (orcamento.tipo_pessoa === "fisica" ? orcamento.cliente_nome_pessoa : orcamento.cliente_nome) || "SemNome"
+    : "SemNome";
+
   const gerarPDF = async () => {
     if (!pdfRef.current) return;
     setGerando(true);
@@ -41,10 +48,9 @@ export default function OrcamentoView() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      const nomeCliente = orcamento?.cliente_nome
-        ? orcamento.cliente_nome.replace(/\s+/g, "_").toLowerCase()
-        : "orcamento";
-      pdf.save(`orcamento_lm_${nomeCliente}.pdf`);
+      const nome = sanitizeFileName(nomeExibicao);
+      const dataFormatada = orcamento?.data?.replace(/\//g, "-") || "";
+      pdf.save(`Orcamento_${nome}_${dataFormatada}.pdf`);
     } finally {
       setGerando(false);
     }
@@ -52,21 +58,42 @@ export default function OrcamentoView() {
 
   const compartilhar = async () => {
     const url = window.location.href;
-    if (navigator.share) {
+    const shareData = {
+      title: `Orçamento LM Manutenções — ${nomeExibicao}`,
+      text: `Confira o orçamento para ${nomeExibicao}.`,
+      url,
+    };
+
+    // Try Web Share API first
+    if (typeof navigator.share === "function") {
       try {
-        await navigator.share({
-          title: `Orçamento LM Manutenções${orcamento?.cliente_nome ? ` — ${orcamento.cliente_nome}` : ""}`,
-          text: `Confira o orçamento para ${orcamento?.cliente_nome || "seu serviço"}.`,
-          url,
-        });
+        await navigator.share(shareData);
+        return;
       } catch {
-        // user cancelled
+        // User cancelled or API failed, fall through to clipboard
       }
-    } else {
-      await navigator.clipboard.writeText(url);
+    }
+
+    // Clipboard fallback with multiple methods
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Textarea fallback for iframes/older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
       setCopiado(true);
       toast({ title: "Link copiado!", description: "O link do orçamento foi copiado para a área de transferência." });
       setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      toast({ title: "Erro ao copiar", description: "Não foi possível copiar o link. Copie manualmente da barra de endereço.", variant: "destructive" });
     }
   };
 
@@ -78,6 +105,9 @@ export default function OrcamentoView() {
           clienteNome: orcamento.cliente_nome,
           clienteCnpj: orcamento.cliente_cnpj,
           clienteEndereco: orcamento.cliente_endereco,
+          clienteCpf: orcamento.cliente_cpf,
+          clienteNomePessoa: orcamento.cliente_nome_pessoa,
+          tipoPessoa: orcamento.tipo_pessoa,
           observacoes: orcamento.observacoes,
           itens: orcamento.itens ?? [],
         },
@@ -110,13 +140,15 @@ export default function OrcamentoView() {
     clienteNome: orcamento.cliente_nome,
     clienteCnpj: orcamento.cliente_cnpj,
     clienteEndereco: orcamento.cliente_endereco,
+    clienteCpf: orcamento.cliente_cpf,
+    clienteNomePessoa: orcamento.cliente_nome_pessoa,
+    tipoPessoa: (orcamento.tipo_pessoa || "juridica") as "juridica" | "fisica",
     itens: orcamento.itens ?? [],
     observacoes: orcamento.observacoes,
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
       <header className="bg-[hsl(var(--brand-black))] text-white shadow-lg">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -128,7 +160,6 @@ export default function OrcamentoView() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {/* Breadcrumb / Actions Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <Link to="/historico" className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mb-1">
@@ -136,10 +167,8 @@ export default function OrcamentoView() {
               Histórico
             </Link>
             <h1 className="text-2xl font-bold text-foreground">
-              Orçamento #{orcamento.numero}
-              {orcamento.cliente_nome && (
-                <span className="text-primary"> — {orcamento.cliente_nome}</span>
-              )}
+              {orcamento.numero}
+              <span className="text-primary"> — {nomeExibicao}</span>
             </h1>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -170,7 +199,6 @@ export default function OrcamentoView() {
           </div>
         </div>
 
-        {/* PDF Preview */}
         <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
           <div className="bg-primary px-6 py-3">
             <h2 className="text-primary-foreground font-bold text-base">Preview do Orçamento</h2>

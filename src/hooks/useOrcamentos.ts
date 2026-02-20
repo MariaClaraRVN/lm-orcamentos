@@ -8,6 +8,9 @@ export interface OrcamentoSalvo {
   cliente_nome: string;
   cliente_cnpj: string;
   cliente_endereco: string;
+  cliente_cpf: string;
+  cliente_nome_pessoa: string;
+  tipo_pessoa: string;
   observacoes: string;
   total: number;
   created_at: string;
@@ -15,19 +18,21 @@ export interface OrcamentoSalvo {
 }
 
 export async function salvarOrcamento(dados: DadosOrcamento, total: number): Promise<string | null> {
-  // Insert orcamento
   const { data: orcamento, error: orcErr } = await supabase
     .from("orcamentos")
     .insert({
-      numero: dados.numero,
+      numero: "auto", // will be overwritten by trigger
       data: dados.data,
       cliente_nome: dados.clienteNome,
       cliente_cnpj: dados.clienteCnpj,
       cliente_endereco: dados.clienteEndereco ?? "",
+      cliente_cpf: dados.clienteCpf ?? "",
+      cliente_nome_pessoa: dados.clienteNomePessoa ?? "",
+      tipo_pessoa: dados.tipoPessoa ?? "juridica",
       observacoes: dados.observacoes ?? "",
       total,
     })
-    .select("id")
+    .select("id, numero")
     .single();
 
   if (orcErr || !orcamento) {
@@ -35,7 +40,6 @@ export async function salvarOrcamento(dados: DadosOrcamento, total: number): Pro
     return null;
   }
 
-  // Insert itens
   const itensPayload = dados.itens.map((item) => ({
     orcamento_id: orcamento.id,
     quantidade: item.quantidade,
@@ -93,7 +97,6 @@ export async function buscarOrcamento(id: string): Promise<OrcamentoSalvo | null
 }
 
 export async function excluirOrcamento(id: string): Promise<boolean> {
-  // Delete itens first (FK constraint)
   const { error: itensErr } = await supabase
     .from("itens_orcamento")
     .delete()
