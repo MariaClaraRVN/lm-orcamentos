@@ -64,8 +64,8 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
             }}
           >
             <span style={{ color: "#111111" }}>L</span>
-            <span style={{ color: "#16a34a", fontSize: "36px" }}>⚡</span>
-            <span style={{ color: "#16a34a" }}>M MANUTENÇÕES</span>
+            <span style={{ color: "#111111", fontSize: "36px" }}>⚡</span>
+            <span style={{ color: "#111111" }}>M MANUTENÇÕES</span>
           </div>
           <div style={{ fontSize: "12px", color: "#111111", lineHeight: "1.8" }}>
             <div>📱 (11) 9. 4554-7975</div>
@@ -104,7 +104,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
         <div style={{ marginBottom: "28px" }}>
           <div
             style={{
-              color: "#16a34a",
+              color: "#111111",
               fontWeight: "700",
               fontSize: "14px",
               marginBottom: "8px",
@@ -151,7 +151,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
         <div style={{ marginBottom: "24px" }}>
           <div
             style={{
-              color: "#16a34a",
+              color: "#111111",
               fontWeight: "700",
               fontSize: "14px",
               marginBottom: "8px",
@@ -169,7 +169,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
             <thead>
               <tr
                 style={{
-                  backgroundColor: "#16a34a",
+                  backgroundColor: "#111111",
                   color: "#ffffff",
                 }}
               >
@@ -307,7 +307,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
           >
             Observações:
           </div>
-          <div style={{ color: "#16a34a", lineHeight: "2" }}>
+          <div style={{ color: "#111111", lineHeight: "2" }}>
             <div>Garantia: 90 dias</div>
             <div>Execução: até 3 dias úteis após depósito inicial</div>
             <div>Necessário entrada de 50% e restante ao final do serviço</div>
@@ -327,7 +327,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
           >
             Pagamento:
           </div>
-          <div style={{ color: "#16a34a", lineHeight: "2" }}>
+          <div style={{ color: "#111111", lineHeight: "2" }}>
             <div>
               Deposito banco Nubank: 260 - Agência: 0001 - Conta: 56310862-1
             </div>
