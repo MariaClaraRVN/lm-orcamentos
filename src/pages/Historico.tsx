@@ -108,7 +108,7 @@ export default function Historico() {
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <User size={13} />
-                          {orc.cliente_nome || "Cliente não informado"}
+                          {(orc.tipo_pessoa === "fisica" ? orc.cliente_nome_pessoa : orc.cliente_nome) || "Cliente não informado"}
                         </span>
                         {orc.cliente_cnpj && (
                           <span>CNPJ: {orc.cliente_cnpj}</span>

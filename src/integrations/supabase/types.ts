@@ -49,35 +49,44 @@ export type Database = {
       orcamentos: {
         Row: {
           cliente_cnpj: string
+          cliente_cpf: string
           cliente_endereco: string
           cliente_nome: string
+          cliente_nome_pessoa: string
           created_at: string
           data: string
           id: string
           numero: string
           observacoes: string
+          tipo_pessoa: string
           total: number
         }
         Insert: {
           cliente_cnpj?: string
+          cliente_cpf?: string
           cliente_endereco?: string
           cliente_nome?: string
+          cliente_nome_pessoa?: string
           created_at?: string
           data: string
           id?: string
           numero: string
           observacoes?: string
+          tipo_pessoa?: string
           total?: number
         }
         Update: {
           cliente_cnpj?: string
+          cliente_cpf?: string
           cliente_endereco?: string
           cliente_nome?: string
+          cliente_nome_pessoa?: string
           created_at?: string
           data?: string
           id?: string
           numero?: string
           observacoes?: string
+          tipo_pessoa?: string
           total?: number
         }
         Relationships: []

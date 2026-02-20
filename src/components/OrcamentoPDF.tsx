@@ -13,6 +13,9 @@ export interface DadosOrcamento {
   clienteNome: string;
   clienteCnpj: string;
   clienteEndereco?: string;
+  clienteCpf?: string;
+  clienteNomePessoa?: string;
+  tipoPessoa?: "juridica" | "fisica";
   itens: ItemOrcamento[];
   observacoes?: string;
 }
@@ -30,6 +33,8 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
       (acc, item) => acc + item.quantidade * item.valorUnitario,
       0
     );
+
+    const isPF = dados.tipoPessoa === "fisica";
 
     return (
       <div
@@ -114,12 +119,25 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
               fontSize: "13px",
             }}
           >
-            <span>
-              <strong>Empresa:</strong> {dados.clienteNome || "—"}
-            </span>
-            <span>
-              <strong>CNPJ:</strong> {dados.clienteCnpj || "—"}
-            </span>
+            {isPF ? (
+              <>
+                <span>
+                  <strong>Nome:</strong> {dados.clienteNomePessoa || "—"}
+                </span>
+                <span>
+                  <strong>CPF:</strong> {dados.clienteCpf || "—"}
+                </span>
+              </>
+            ) : (
+              <>
+                <span>
+                  <strong>Empresa:</strong> {dados.clienteNome || "—"}
+                </span>
+                <span>
+                  <strong>CNPJ:</strong> {dados.clienteCnpj || "—"}
+                </span>
+              </>
+            )}
           </div>
           {dados.clienteEndereco && (
             <div style={{ marginTop: "4px" }}>
@@ -217,7 +235,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
                       borderBottom: "1px solid #e5e7eb",
                     }}
                   >
-                    {formatMoeda(item.valorUnitario)}
+                    {item.valorUnitario > 0 ? formatMoeda(item.valorUnitario) : "—"}
                   </td>
                 </tr>
               ))}
@@ -240,17 +258,19 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
           </table>
 
           {/* Total */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: "12px",
-              fontSize: "15px",
-              fontWeight: "700",
-            }}
-          >
-            Total: {formatMoeda(total)}
-          </div>
+          {total > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: "12px",
+                fontSize: "15px",
+                fontWeight: "700",
+              }}
+            >
+              Total: {formatMoeda(total)}
+            </div>
+          )}
         </div>
 
         {/* Observations */}
