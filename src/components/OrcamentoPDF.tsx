@@ -151,7 +151,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
         <div style={{ marginBottom: "24px" }}>
           <div
             style={{
-              color: "#111111",
+              color: "#16a34a",
               fontWeight: "700",
               fontSize: "14px",
               marginBottom: "8px",
