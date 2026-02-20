@@ -101,7 +101,7 @@ export default function Index() {
   };
 
   const total = itens.reduce(
-    (acc, item) => acc + item.quantidade * item.valorUnitario,
+    (acc, item) => acc + (item.valorTotal ?? item.quantidade * item.valorUnitario),
     0
   );
 
@@ -304,9 +304,10 @@ export default function Index() {
               </h3>
 
               <div className="grid grid-cols-12 gap-2 mb-2 px-2">
-                <span className="col-span-2 text-xs font-bold text-muted-foreground uppercase">Qtd</span>
-                <span className="col-span-6 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
-                <span className="col-span-3 text-xs font-bold text-muted-foreground uppercase">Valor Unit. (opcional)</span>
+                <span className="col-span-1 text-xs font-bold text-muted-foreground uppercase">Qtd</span>
+                <span className="col-span-5 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
+                <span className="col-span-2 text-xs font-bold text-muted-foreground uppercase">V. Unit.</span>
+                <span className="col-span-3 text-xs font-bold text-muted-foreground uppercase">V. Total</span>
                 <span className="col-span-1"></span>
               </div>
 
@@ -316,7 +317,7 @@ export default function Index() {
                     key={item.id}
                     className={`grid grid-cols-12 gap-2 p-2 rounded ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}
                   >
-                    <div className="col-span-2">
+                    <div className="col-span-1">
                       <Input
                         type="number"
                         min={1}
@@ -327,7 +328,7 @@ export default function Index() {
                         className="h-8 text-sm"
                       />
                     </div>
-                    <div className="col-span-6">
+                    <div className="col-span-5">
                       <Input
                         placeholder="Descrição do serviço/produto"
                         value={item.descricao}
@@ -338,7 +339,7 @@ export default function Index() {
                         className="h-8 text-sm"
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <Input
                         type="number"
                         min={0}
@@ -349,6 +350,23 @@ export default function Index() {
                           updateItem(
                             item.id,
                             "valorUnitario",
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        placeholder="Valor total"
+                        value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
+                        onChange={(e) =>
+                          updateItem(
+                            item.id,
+                            "valorTotal" as keyof ItemOrcamento,
                             parseFloat(e.target.value) || 0
                           )
                         }
