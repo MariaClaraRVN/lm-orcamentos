@@ -48,8 +48,8 @@ const LIMITS = {
   cnpj: 18, // formatted XX.XXX.XXX/XXXX-XX
   cpf: 14, // formatted XXX.XXX.XXX-XX
   endereco: 120,
-  descricao: 150,
-  observacoes: 300,
+  descricao: 100,
+  observacoes: 100,
 };
 
 export default function Index() {
