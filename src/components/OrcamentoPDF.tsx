@@ -47,7 +47,6 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
           padding: "48px 56px",
           backgroundColor: "#ffffff",
           color: "#111111",
-          fontFamily: "Arial, Helvetica, sans-serif",
           fontSize: "13px",
           lineHeight: "1.5",
           boxSizing: "border-box",
@@ -55,25 +54,8 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
       >
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          <div
-            style={{
-              fontSize: "32px",
-              fontWeight: "900",
-              letterSpacing: "1px",
-              marginBottom: "6px",
-            }}
-          >
-            <span style={{ color: "#111111" }}>L</span>
-            <span style={{ color: "#111111", fontSize: "36px" }}>⚡</span>
-            <span style={{ color: "#111111" }}>M MANUTENÇÕES</span>
-          </div>
-          <div style={{ fontSize: "12px", color: "#111111", lineHeight: "1.8" }}>
-            <div>📱 (11) 9. 4554-7975</div>
-            <div>
-              <strong>CNPJ: 40.080.991/0001-84</strong>
-            </div>
-            <div>LINCOLN.MANUTENCOES@GMAIL.COM</div>
-            <div>LINCOLN.VIANNA@BOL.COM.BR</div>
+          <div>
+            <img style={{maxWidth: "400px", margin: "0 auto"}} src="public\LM_Manutencao.png" alt="Logo da LM Manutenções" />
           </div>
           <div
             style={{
@@ -81,7 +63,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
               fontWeight: "800",
               marginTop: "14px",
               textTransform: "uppercase",
-              letterSpacing: "2px",
+              fontFamily: "'Montserrat', sans-serif",
             }}
           >
             ORÇAMENTO COMERCIAL
@@ -151,7 +133,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
         <div style={{ marginBottom: "24px" }}>
           <div
             style={{
-              color: "#16a34a",
+              color: "#111111",
               fontWeight: "700",
               fontSize: "14px",
               marginBottom: "8px",
@@ -169,7 +151,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
             <thead>
               <tr
                 style={{
-                  backgroundColor: "#111111",
+                  backgroundColor: "#16a34a",
                   color: "#ffffff",
                 }}
               >
@@ -311,7 +293,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
             <div>Garantia: 90 dias</div>
             <div>Execução: até 3 dias úteis após depósito inicial</div>
             <div>Necessário entrada de 50% e restante ao final do serviço</div>
-            {dados.observacoes && <div>{dados.observacoes}</div>}
+            {dados.observacoes && <div>Observações adicionais: {dados.observacoes}</div>}
           </div>
         </div>
 

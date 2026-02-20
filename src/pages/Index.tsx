@@ -44,12 +44,12 @@ const sanitizeFileName = (name: string) =>
 
 // Character limits
 const LIMITS = {
-  nome: 80,
+  nome: 50,
   cnpj: 18, // formatted XX.XXX.XXX/XXXX-XX
   cpf: 14, // formatted XXX.XXX.XXX-XX
-  endereco: 120,
-  descricao: 100,
-  observacoes: 100,
+  endereco: 70,
+  descricao: 50,
+  observacoes: 80,
 };
 
 export default function Index() {
