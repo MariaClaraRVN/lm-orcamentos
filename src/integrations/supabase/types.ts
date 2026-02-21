@@ -20,6 +20,7 @@ export type Database = {
           id: string
           orcamento_id: string
           quantidade: number
+          valor_total: number
           valor_unitario: number
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           id?: string
           orcamento_id: string
           quantidade?: number
+          valor_total?: number
           valor_unitario?: number
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           id?: string
           orcamento_id?: string
           quantidade?: number
+          valor_total?: number
           valor_unitario?: number
         }
         Relationships: [

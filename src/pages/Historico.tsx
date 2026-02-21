@@ -102,7 +102,7 @@ export default function Historico() {
                       <div className="flex items-center gap-2">
                         <FileText size={16} className="text-primary" />
                         <span className="font-bold text-foreground">
-                          Orçamento #{orc.numero}
+                          Orçamento # {orc.numero}-{(orc.tipo_pessoa === "fisica" ? orc.cliente_nome_pessoa : orc.cliente_nome) || "Cliente"}-{orc.data}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
