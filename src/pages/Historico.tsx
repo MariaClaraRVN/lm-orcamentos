@@ -18,6 +18,9 @@ import { toast } from "@/hooks/use-toast";
 const formatMoeda = (valor: number) =>
   Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const sanitizeFileName = (name: string) =>
+  name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "-");
+
 export default function Historico() {
   const [orcamentos, setOrcamentos] = useState<OrcamentoSalvo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,9 @@ export default function Historico() {
     }
     setDeletandoId(null);
   };
+
+  const getNomeCliente = (orc: OrcamentoSalvo) =>
+    (orc.tipo_pessoa === "fisica" ? orc.cliente_nome_pessoa : orc.cliente_nome) || "Cliente";
 
   const orcamentoParaExcluir = orcamentos.find((o) => o.id === confirmId);
 
@@ -102,17 +108,14 @@ export default function Historico() {
                       <div className="flex items-center gap-2">
                         <FileText size={16} className="text-primary" />
                         <span className="font-bold text-foreground">
-                          Orçamento # {orc.numero}-{(orc.tipo_pessoa === "fisica" ? orc.cliente_nome_pessoa : orc.cliente_nome) || "Cliente"}-{orc.data}
+                          Orçamento-{sanitizeFileName(getNomeCliente(orc))}-{orc.data}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <User size={13} />
-                          {(orc.tipo_pessoa === "fisica" ? orc.cliente_nome_pessoa : orc.cliente_nome) || "Cliente não informado"}
+                          {getNomeCliente(orc)}
                         </span>
-                        {orc.cliente_cnpj && (
-                          <span>CNPJ: {orc.cliente_cnpj}</span>
-                        )}
                         <span className="flex items-center gap-1">
                           <Calendar size={13} />
                           {orc.data}
@@ -147,11 +150,6 @@ export default function Historico() {
                       </Button>
                     </div>
                   </div>
-                  {orc.observacoes && (
-                    <p className="mt-2 text-xs text-muted-foreground italic truncate">
-                      Obs: {orc.observacoes}
-                    </p>
-                  )}
                 </div>
               ))}
             </div>
@@ -166,10 +164,7 @@ export default function Historico() {
             <AlertDialogTitle>Excluir orçamento?</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir o orçamento{" "}
-              <strong>#{orcamentoParaExcluir?.numero}</strong>
-              {orcamentoParaExcluir?.cliente_nome && (
-                <> para <strong>{orcamentoParaExcluir.cliente_nome}</strong></>
-              )}
+              <strong>{orcamentoParaExcluir ? `Orçamento-${sanitizeFileName(getNomeCliente(orcamentoParaExcluir))}-${orcamentoParaExcluir.data}` : ""}</strong>
               ? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

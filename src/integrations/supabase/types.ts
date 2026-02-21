@@ -53,9 +53,11 @@ export type Database = {
         Row: {
           cliente_cnpj: string
           cliente_cpf: string
+          cliente_email: string
           cliente_endereco: string
           cliente_nome: string
           cliente_nome_pessoa: string
+          cliente_telefone: string
           created_at: string
           data: string
           id: string
@@ -67,9 +69,11 @@ export type Database = {
         Insert: {
           cliente_cnpj?: string
           cliente_cpf?: string
+          cliente_email?: string
           cliente_endereco?: string
           cliente_nome?: string
           cliente_nome_pessoa?: string
+          cliente_telefone?: string
           created_at?: string
           data: string
           id?: string
@@ -81,9 +85,11 @@ export type Database = {
         Update: {
           cliente_cnpj?: string
           cliente_cpf?: string
+          cliente_email?: string
           cliente_endereco?: string
           cliente_nome?: string
           cliente_nome_pessoa?: string
+          cliente_telefone?: string
           created_at?: string
           data?: string
           id?: string

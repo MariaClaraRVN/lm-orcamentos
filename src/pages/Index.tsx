@@ -64,6 +64,8 @@ export default function Index() {
   const [clienteCpf, setClienteCpf] = useState(orcamentoParaEditar?.clienteCpf ?? "");
   const [clienteNomePessoa, setClienteNomePessoa] = useState(orcamentoParaEditar?.clienteNomePessoa ?? "");
   const [clienteEndereco, setClienteEndereco] = useState(orcamentoParaEditar?.clienteEndereco ?? "");
+  const [clienteEmail, setClienteEmail] = useState(orcamentoParaEditar?.clienteEmail ?? "");
+  const [clienteTelefone, setClienteTelefone] = useState(orcamentoParaEditar?.clienteTelefone ?? "");
   const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
   const [itens, setItens] = useState<ItemOrcamento[]>(
     orcamentoParaEditar?.itens?.length
@@ -95,6 +97,8 @@ export default function Index() {
     clienteEndereco,
     clienteCpf,
     clienteNomePessoa,
+    clienteEmail,
+    clienteTelefone,
     tipoPessoa,
     itens,
     observacoes,
@@ -291,6 +295,33 @@ export default function Index() {
                     value={clienteEndereco}
                     maxLength={LIMITS.endereco}
                     onChange={(e) => setClienteEndereco(e.target.value)}
+                    className="border-input focus-visible:ring-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase">
+                    Email (opcional)
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="email@exemplo.com"
+                    value={clienteEmail}
+                    maxLength={80}
+                    onChange={(e) => setClienteEmail(e.target.value)}
+                    className="border-input focus-visible:ring-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="telefone" className="text-xs font-semibold text-muted-foreground uppercase">
+                    Telefone (opcional)
+                  </Label>
+                  <Input
+                    id="telefone"
+                    placeholder="(11) 99999-9999"
+                    value={clienteTelefone}
+                    maxLength={20}
+                    onChange={(e) => setClienteTelefone(e.target.value)}
                     className="border-input focus-visible:ring-primary"
                   />
                 </div>

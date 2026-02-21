@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileDown, Share2, Check, FilePen, Copy } from "lucide-react";
+import { ArrowLeft, FileDown, Share2, FilePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrcamentoPDF from "@/components/OrcamentoPDF";
 import { buscarOrcamento, OrcamentoSalvo } from "@/hooks/useOrcamentos";
@@ -17,7 +17,7 @@ export default function OrcamentoView() {
   const [orcamento, setOrcamento] = useState<OrcamentoSalvo | null>(null);
   const [loading, setLoading] = useState(true);
   const [gerando, setGerando] = useState(false);
-  const [copiado, setCopiado] = useState(false);
+  const [compartilhando, setCompartilhando] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,68 +32,69 @@ export default function OrcamentoView() {
     ? (orcamento.tipo_pessoa === "fisica" ? orcamento.cliente_nome_pessoa : orcamento.cliente_nome) || "SemNome"
     : "SemNome";
 
-  const gerarPDF = async () => {
-    if (!pdfRef.current) return;
-    setGerando(true);
+  const buildPDF = async () => {
+    if (!pdfRef.current) return null;
     await new Promise((r) => setTimeout(r, 200));
+    const canvas = await html2canvas(pdfRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    return pdf;
+  };
+
+  const getFileName = () => {
+    const nome = sanitizeFileName(nomeExibicao);
+    const dataFormatada = orcamento?.data?.replace(/\//g, "-") || "";
+    return `Orcamento_${nome}_${dataFormatada}.pdf`;
+  };
+
+  const gerarPDF = async () => {
+    setGerando(true);
     try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      const nome = sanitizeFileName(nomeExibicao);
-      const dataFormatada = orcamento?.data?.replace(/\//g, "-") || "";
-      pdf.save(`Orcamento_${nome}_${dataFormatada}.pdf`);
+      const pdf = await buildPDF();
+      if (pdf) pdf.save(getFileName());
     } finally {
       setGerando(false);
     }
   };
 
   const compartilhar = async () => {
-    const url = window.location.href;
-    const shareData = {
-      title: `Orçamento LM Manutenções — ${nomeExibicao}`,
-      text: `Confira o orçamento para ${nomeExibicao}.`,
-      url,
-    };
-
-    // Try Web Share API first
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch {
-        // User cancelled or API failed, fall through to clipboard
-      }
-    }
-
-    // Clipboard fallback with multiple methods
+    setCompartilhando(true);
     try {
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-        await navigator.clipboard.writeText(url);
+      const pdf = await buildPDF();
+      if (!pdf) return;
+
+      const blob = pdf.output("blob");
+      const file = new File([blob], getFileName(), { type: "application/pdf" });
+
+      if (typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: `Orçamento — ${nomeExibicao}`,
+          files: [file],
+        });
       } else {
-        // Textarea fallback for iframes/older browsers
-        const textarea = document.createElement("textarea");
-        textarea.value = url;
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
+        // Fallback: download the file
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = getFileName();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: "PDF baixado", description: "O compartilhamento não é suportado neste navegador. O PDF foi baixado." });
       }
-      setCopiado(true);
-      toast({ title: "Link copiado!", description: "O link do orçamento foi copiado para a área de transferência." });
-      setTimeout(() => setCopiado(false), 2500);
     } catch {
-      toast({ title: "Erro ao copiar", description: "Não foi possível copiar o link. Copie manualmente da barra de endereço.", variant: "destructive" });
+      toast({ title: "Erro ao compartilhar", description: "Não foi possível compartilhar o arquivo.", variant: "destructive" });
+    } finally {
+      setCompartilhando(false);
     }
   };
 
@@ -107,6 +108,8 @@ export default function OrcamentoView() {
           clienteEndereco: orcamento.cliente_endereco,
           clienteCpf: orcamento.cliente_cpf,
           clienteNomePessoa: orcamento.cliente_nome_pessoa,
+          clienteEmail: orcamento.cliente_email,
+          clienteTelefone: orcamento.cliente_telefone,
           tipoPessoa: orcamento.tipo_pessoa,
           observacoes: orcamento.observacoes,
           itens: orcamento.itens ?? [],
@@ -142,6 +145,8 @@ export default function OrcamentoView() {
     clienteEndereco: orcamento.cliente_endereco,
     clienteCpf: orcamento.cliente_cpf,
     clienteNomePessoa: orcamento.cliente_nome_pessoa,
+    clienteEmail: orcamento.cliente_email,
+    clienteTelefone: orcamento.cliente_telefone,
     tipoPessoa: (orcamento.tipo_pessoa || "juridica") as "juridica" | "fisica",
     itens: orcamento.itens ?? [],
     observacoes: orcamento.observacoes,
@@ -183,10 +188,11 @@ export default function OrcamentoView() {
             <Button
               variant="outline"
               onClick={compartilhar}
+              disabled={compartilhando}
               className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             >
-              {copiado ? <Check size={15} className="mr-2" /> : <Share2 size={15} className="mr-2" />}
-              {copiado ? "Link copiado!" : "Compartilhar"}
+              <Share2 size={15} className="mr-2" />
+              {compartilhando ? "Gerando..." : "Compartilhar PDF"}
             </Button>
             <Button
               onClick={gerarPDF}
