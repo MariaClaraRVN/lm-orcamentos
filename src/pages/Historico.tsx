@@ -62,7 +62,7 @@ export default function Historico() {
           <div className="flex items-center gap-2">
             {/* <span className="text-white font-black text-2xl tracking-wide">L</span>
             <span className="text-[hsl(var(--brand-green-light))] font-black text-2xl">⚡M MANUTENÇÕES</span> */}
-            <img style={{maxWidth: "100px", margin: "0 auto"}} src="/Icon.jpg" alt="Logo LM" />
+            <img style={{maxWidth: "100px", margin: "0 auto"}} src="/Icon.png" alt="Logo LM" />
           </div>
           <span className="text-sm text-gray-400 hidden sm:block">Histórico de Orçamentos</span>
         </div>
