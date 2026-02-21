@@ -80,7 +80,7 @@ export default function OrcamentoView() {
           files: [file],
         });
       } else {
-        // Fallback: download the file
+        // Fallback: download the file directly
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -89,7 +89,7 @@ export default function OrcamentoView() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: "PDF baixado", description: "O compartilhamento não é suportado neste navegador. O PDF foi baixado." });
+        toast({ title: "PDF pronto!", description: "O arquivo PDF foi baixado. Para compartilhar, envie o arquivo baixado pelo WhatsApp ou email." });
       }
     } catch {
       toast({ title: "Erro ao compartilhar", description: "Não foi possível compartilhar o arquivo.", variant: "destructive" });

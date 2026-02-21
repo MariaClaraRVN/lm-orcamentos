@@ -39,6 +39,13 @@ const maskCPF = (v: string) => {
     .replace(/\.(\d{3})(\d)/, ".$1-$2");
 };
 
+const maskTelefone = (v: string) => {
+  const digits = v.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
 const sanitizeFileName = (name: string) =>
   name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
 
@@ -320,8 +327,7 @@ export default function Index() {
                     id="telefone"
                     placeholder="(11) 99999-9999"
                     value={clienteTelefone}
-                    maxLength={20}
-                    onChange={(e) => setClienteTelefone(e.target.value)}
+                    onChange={(e) => setClienteTelefone(maskTelefone(e.target.value))}
                     className="border-input focus-visible:ring-primary"
                   />
                 </div>
@@ -334,7 +340,7 @@ export default function Index() {
                 Itens do Orçamento
               </h3>
 
-              <div className="grid grid-cols-12 gap-2 mb-2 px-2">
+              <div className="hidden sm:grid grid-cols-12 gap-2 mb-2 px-2">
                 <span className="col-span-1 text-xs font-bold text-muted-foreground uppercase">Qtd</span>
                 <span className="col-span-5 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
                 <span className="col-span-2 text-xs font-bold text-muted-foreground uppercase">V. Unit.</span>
@@ -346,73 +352,126 @@ export default function Index() {
                 {itens.map((item, idx) => (
                   <div
                     key={item.id}
-                    className={`grid grid-cols-12 gap-2 p-2 rounded ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}
+                    className={`p-3 rounded ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}
                   >
-                    <div className="col-span-1">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={item.quantidade}
-                        onChange={(e) =>
-                          updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)
-                        }
-                        className="h-8 text-sm"
-                      />
+                    {/* Desktop layout */}
+                    <div className="hidden sm:grid grid-cols-12 gap-2">
+                      <div className="col-span-1">
+                        <Input
+                          type="number"
+                          min={1}
+                          value={item.quantidade}
+                          onChange={(e) =>
+                            updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)
+                          }
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="col-span-5">
+                        <Input
+                          placeholder="Descrição do serviço/produto"
+                          value={item.descricao}
+                          maxLength={LIMITS.descricao}
+                          onChange={(e) =>
+                            updateItem(item.id, "descricao", e.target.value)
+                          }
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="Opcional"
+                          value={item.valorUnitario === 0 ? "" : item.valorUnitario}
+                          onChange={(e) =>
+                            updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)
+                          }
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="Valor total"
+                          value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
+                          onChange={(e) =>
+                            updateItem(item.id, "valorTotal" as keyof ItemOrcamento, parseFloat(e.target.value) || 0)
+                          }
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      <div className="col-span-1 flex items-center justify-center">
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          disabled={itens.length === 1}
+                          className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"
+                          title="Remover item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="col-span-5">
+
+                    {/* Mobile layout */}
+                    <div className="sm:hidden space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-muted-foreground">Item {idx + 1}</span>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          disabled={itens.length === 1}
+                          className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"
+                          title="Remover item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                       <Input
                         placeholder="Descrição do serviço/produto"
                         value={item.descricao}
                         maxLength={LIMITS.descricao}
-                        onChange={(e) =>
-                          updateItem(item.id, "descricao", e.target.value)
-                        }
-                        className="h-8 text-sm"
+                        onChange={(e) => updateItem(item.id, "descricao", e.target.value)}
+                        className="h-9 text-sm"
                       />
-                    </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        placeholder="Opcional"
-                        value={item.valorUnitario === 0 ? "" : item.valorUnitario}
-                        onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "valorUnitario",
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                    <div className="col-span-3">
-                      <Input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        placeholder="Valor total"
-                        value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
-                        onChange={(e) =>
-                          updateItem(
-                            item.id,
-                            "valorTotal" as keyof ItemOrcamento,
-                            parseFloat(e.target.value) || 0
-                          )
-                        }
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                    <div className="col-span-1 flex items-center justify-center">
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        disabled={itens.length === 1}
-                        className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"
-                        title="Remover item"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground">Qtd</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={item.quantidade}
+                            onChange={(e) => updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground">V. Unit.</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Opcional"
+                            value={item.valorUnitario === 0 ? "" : item.valorUnitario}
+                            onChange={(e) => updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground">V. Total</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.01}
+                            placeholder="Total"
+                            value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
+                            onChange={(e) => updateItem(item.id, "valorTotal" as keyof ItemOrcamento, parseFloat(e.target.value) || 0)}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
