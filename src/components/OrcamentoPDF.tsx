@@ -16,6 +16,8 @@ export interface DadosOrcamento {
   clienteEndereco?: string;
   clienteCpf?: string;
   clienteNomePessoa?: string;
+  clienteEmail?: string;
+  clienteTelefone?: string;
   tipoPessoa?: "juridica" | "fisica";
   itens: ItemOrcamento[];
   observacoes?: string;
@@ -55,7 +57,7 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "20px" }}>
           <div>
-            <img style={{maxWidth: "400px", margin: "0 auto"}} src="public\LM_Manutencao.png" alt="Logo da LM Manutenções" />
+            <img style={{maxWidth: "400px", margin: "0 auto"}} src="/LM_Manutencao.png" alt="Logo da LM Manutenções" />
           </div>
           <div
             style={{
@@ -127,6 +129,14 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
               <strong>Endereço:</strong> {dados.clienteEndereco}
             </div>
           )}
+          <div style={{ display: "flex", gap: "40px", flexWrap: "wrap", marginTop: "4px", fontSize: "13px" }}>
+            {dados.clienteEmail && (
+              <span><strong>Email:</strong> {dados.clienteEmail}</span>
+            )}
+            {dados.clienteTelefone && (
+              <span><strong>Telefone:</strong> {dados.clienteTelefone}</span>
+            )}
+          </div>
         </div>
 
         {/* Items Table */}
