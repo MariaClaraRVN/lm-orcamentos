@@ -186,7 +186,7 @@ export default function Index() {
           <div className="flex items-center gap-2">
             {/* <span className="text-white font-black text-2xl tracking-wide">L</span>
             <span className="text-[hsl(var(--brand-green-light))] font-black text-2xl">⚡M MANUTENÇÕES</span> */}
-            <img src="public/Icon.jpg" alt="Logo LM" />
+            <img src="/public/Icon.jpg" alt="Logo LM" />
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-400 hidden sm:block">Sistema de Orçamentos</span>
