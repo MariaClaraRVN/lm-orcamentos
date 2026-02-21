@@ -44,11 +44,11 @@ const sanitizeFileName = (name: string) =>
 
 // Character limits
 const LIMITS = {
-  nome: 50,
-  cnpj: 18, // formatted XX.XXX.XXX/XXXX-XX
-  cpf: 14, // formatted XXX.XXX.XXX-XX
-  endereco: 70,
-  descricao: 50,
+  nome: 80,
+  cnpj: 14,
+  cpf: 12,
+  endereco: 80,
+  descricao: 80,
   observacoes: 80,
 };
 
