@@ -51,7 +51,7 @@ const sanitizeFileName = (name: string) =>
 
 // Character limits
 const LIMITS = {
-  nome: 80,
+  nome: 40,
   cnpj: 14,
   cpf: 12,
   endereco: 80,
