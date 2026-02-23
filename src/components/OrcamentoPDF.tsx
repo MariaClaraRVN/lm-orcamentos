@@ -182,25 +182,6 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
                 >
                   Descrição
                 </th>
-                <th
-                  style={{
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    fontWeight: "700",
-                    width: "60px",
-                  }}
-                >
-                  Qtd
-                </th>
-                <th
-                  style={{
-                    padding: "8px 12px",
-                    textAlign: "left",
-                    fontWeight: "700",
-                  }}
-                >
-                  Descrição
-                </th>
                 {hasValorUnitario && (
                   <th
                     style={{
