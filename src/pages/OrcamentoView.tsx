@@ -59,7 +59,11 @@ export default function OrcamentoView() {
     setGerando(true);
     try {
       const pdf = await buildPDF();
-      if (pdf) pdf.save(getFileName());
+      if (pdf) {
+        const blob = pdf.output("blob");
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      }
     } finally {
       setGerando(false);
     }
@@ -75,21 +79,11 @@ export default function OrcamentoView() {
       const file = new File([blob], getFileName(), { type: "application/pdf" });
 
       if (typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: `Orçamento — ${nomeExibicao}`,
-          files: [file],
-        });
+        await navigator.share({ files: [file] });
       } else {
-        // Fallback: download the file directly
+        // Fallback: open in new tab
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = getFileName();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast({ title: "PDF pronto!", description: "O arquivo PDF foi baixado. Para compartilhar, envie o arquivo baixado pelo WhatsApp ou email." });
+        window.open(url, "_blank");
       }
     } catch {
       toast({ title: "Erro ao compartilhar", description: "Não foi possível compartilhar o arquivo.", variant: "destructive" });
@@ -150,6 +144,7 @@ export default function OrcamentoView() {
     tipoPessoa: (orcamento.tipo_pessoa || "juridica") as "juridica" | "fisica",
     itens: orcamento.itens ?? [],
     observacoes: orcamento.observacoes,
+    total: orcamento.total,
   };
 
   return (

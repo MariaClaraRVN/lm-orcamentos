@@ -5,7 +5,6 @@ export interface ItemOrcamento {
   quantidade: number;
   descricao: string;
   valorUnitario: number;
-  valorTotal?: number;
 }
 
 export interface DadosOrcamento {
@@ -21,6 +20,7 @@ export interface DadosOrcamento {
   tipoPessoa?: "juridica" | "fisica";
   itens: ItemOrcamento[];
   observacoes?: string;
+  total?: number;
 }
 
 interface OrcamentoPDFProps {
@@ -32,10 +32,8 @@ const formatMoeda = (valor: number) =>
 
 const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
   ({ dados }, ref) => {
-    const total = dados.itens.reduce(
-      (acc, item) => acc + (item.valorTotal ?? item.quantidade * item.valorUnitario),
-      0
-    );
+    const total = dados.total ?? 0;
+    const hasValorUnitario = dados.itens.some((item) => item.valorUnitario > 0);
 
     const isPF = dados.tipoPessoa === "fisica";
 
@@ -187,23 +185,34 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
                 <th
                   style={{
                     padding: "8px 12px",
-                    textAlign: "right",
+                    textAlign: "left",
                     fontWeight: "700",
-                    width: "130px",
+                    width: "60px",
                   }}
                 >
-                  Valor Unit. (R$)
+                  Qtd
                 </th>
                 <th
                   style={{
                     padding: "8px 12px",
-                    textAlign: "right",
+                    textAlign: "left",
                     fontWeight: "700",
-                    width: "130px",
                   }}
                 >
-                  Valor Total (R$)
+                  Descrição
                 </th>
+                {hasValorUnitario && (
+                  <th
+                    style={{
+                      padding: "8px 12px",
+                      textAlign: "right",
+                      fontWeight: "700",
+                      width: "130px",
+                    }}
+                  >
+                    Valor Unit. (R$)
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -231,32 +240,23 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
                   >
                     {item.descricao}
                   </td>
-                  <td
-                    style={{
-                      padding: "7px 12px",
-                      textAlign: "right",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    {item.valorUnitario > 0 ? formatMoeda(item.valorUnitario) : "—"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "7px 12px",
-                      textAlign: "right",
-                      borderBottom: "1px solid #e5e7eb",
-                    }}
-                  >
-                    {(item.valorTotal ?? (item.valorUnitario > 0 ? item.quantidade * item.valorUnitario : 0)) > 0
-                      ? formatMoeda(item.valorTotal ?? item.quantidade * item.valorUnitario)
-                      : "—"}
-                  </td>
+                  {hasValorUnitario && (
+                    <td
+                      style={{
+                        padding: "7px 12px",
+                        textAlign: "right",
+                        borderBottom: "1px solid #e5e7eb",
+                      }}
+                    >
+                      {item.valorUnitario > 0 ? formatMoeda(item.valorUnitario) : "—"}
+                    </td>
+                  )}
                 </tr>
               ))}
               {dados.itens.length === 0 && (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={hasValorUnitario ? 3 : 2}
                     style={{
                       padding: "16px",
                       textAlign: "center",
