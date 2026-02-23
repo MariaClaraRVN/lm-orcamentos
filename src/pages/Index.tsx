@@ -81,6 +81,7 @@ export default function Index() {
   );
   const [showPreview, setShowPreview] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [valorTotal, setValorTotal] = useState<number>(orcamentoParaEditar?.valorTotal ?? 0);
 
   useEffect(() => {
     if (orcamentoParaEditar) {
@@ -109,12 +110,8 @@ export default function Index() {
     tipoPessoa,
     itens,
     observacoes,
+    total: valorTotal,
   };
-
-  const total = itens.reduce(
-    (acc, item) => acc + (item.valorTotal ?? item.quantidade * item.valorUnitario),
-    0
-  );
 
   const addItem = () => {
     setItens((prev) => [
@@ -164,15 +161,14 @@ export default function Index() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
-      const nome = sanitizeFileName(nomeExibicao || "SemNome");
-      const dataFormatada = hoje().replace(/\//g, "-");
-      pdf.save(`Orcamento_${nome}_${dataFormatada}.pdf`);
+      // No download - we'll open in new tab below
 
-      await salvarOrcamento(dados, total);
-      toast({
-        title: "Orçamento salvo!",
-        description: "O orçamento foi salvo no histórico com sucesso.",
-      });
+      // Open PDF in new tab
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+
+      await salvarOrcamento(dados, valorTotal);
     } finally {
       setGerando(false);
     }
@@ -343,9 +339,8 @@ export default function Index() {
 
               <div className="hidden sm:grid grid-cols-12 gap-2 mb-2 px-2">
                 <span className="col-span-1 text-xs font-bold text-muted-foreground uppercase">Qtd</span>
-                <span className="col-span-5 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
-                <span className="col-span-2 text-xs font-bold text-muted-foreground uppercase">V. Unit.</span>
-                <span className="col-span-3 text-xs font-bold text-muted-foreground uppercase">V. Total</span>
+                <span className="col-span-7 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
+                <span className="col-span-3 text-xs font-bold text-muted-foreground uppercase">V. Unit. (opcional)</span>
                 <span className="col-span-1"></span>
               </div>
 
@@ -368,7 +363,7 @@ export default function Index() {
                           className="h-8 text-sm"
                         />
                       </div>
-                      <div className="col-span-5">
+                      <div className="col-span-7">
                         <Input
                           placeholder="Descrição do serviço/produto"
                           value={item.descricao}
@@ -379,7 +374,7 @@ export default function Index() {
                           className="h-8 text-sm"
                         />
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-3">
                         <Input
                           type="number"
                           min={0}
@@ -388,19 +383,6 @@ export default function Index() {
                           value={item.valorUnitario === 0 ? "" : item.valorUnitario}
                           onChange={(e) =>
                             updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)
-                          }
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="col-span-3">
-                        <Input
-                          type="number"
-                          min={0}
-                          step={0.01}
-                          placeholder="Valor total"
-                          value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
-                          onChange={(e) =>
-                            updateItem(item.id, "valorTotal" as keyof ItemOrcamento, parseFloat(e.target.value) || 0)
                           }
                           className="h-8 text-sm"
                         />
@@ -437,7 +419,7 @@ export default function Index() {
                         onChange={(e) => updateItem(item.id, "descricao", e.target.value)}
                         className="h-9 text-sm"
                       />
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <div>
                           <Label className="text-[10px] text-muted-foreground">Qtd</Label>
                           <Input
@@ -449,7 +431,7 @@ export default function Index() {
                           />
                         </div>
                         <div>
-                          <Label className="text-[10px] text-muted-foreground">V. Unit.</Label>
+                          <Label className="text-[10px] text-muted-foreground">V. Unit. (opcional)</Label>
                           <Input
                             type="number"
                             min={0}
@@ -457,18 +439,6 @@ export default function Index() {
                             placeholder="Opcional"
                             value={item.valorUnitario === 0 ? "" : item.valorUnitario}
                             onChange={(e) => updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)}
-                            className="h-8 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-[10px] text-muted-foreground">V. Total</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            placeholder="Total"
-                            value={item.valorTotal === undefined || item.valorTotal === 0 ? "" : item.valorTotal}
-                            onChange={(e) => updateItem(item.id, "valorTotal" as keyof ItemOrcamento, parseFloat(e.target.value) || 0)}
                             className="h-8 text-sm"
                           />
                         </div>
@@ -488,14 +458,19 @@ export default function Index() {
                 Adicionar Item
               </Button>
 
-              {/* Total */}
-              {total > 0 && (
-                <div className="mt-4 flex justify-end">
-                  <div className="bg-[hsl(var(--brand-black))] text-white px-6 py-2 rounded font-bold text-lg">
-                    Total: {formatMoeda(total)}
-                  </div>
-                </div>
-              )}
+              {/* Valor Total */}
+              <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-end gap-2">
+                <Label className="text-sm font-bold text-foreground">Valor Total do Orçamento (R$):</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  placeholder="0,00"
+                  value={valorTotal === 0 ? "" : valorTotal}
+                  onChange={(e) => setValorTotal(parseFloat(e.target.value) || 0)}
+                  className="w-full sm:w-48 h-10 text-lg font-bold"
+                />
+              </div>
             </div>
 
             {/* Observations */}
