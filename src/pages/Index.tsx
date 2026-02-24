@@ -137,6 +137,22 @@ export default function Index() {
     );
   };
 
+  const [salvando, setSalvando] = useState(false);
+
+  const salvar = async () => {
+    setSalvando(true);
+    try {
+      const id = await salvarOrcamento(dados, valorTotal);
+      if (id) {
+        toast({ title: "Salvo!", description: "Orçamento salvo no histórico com sucesso." });
+      } else {
+        toast({ title: "Erro ao salvar", description: "Não foi possível salvar o orçamento.", variant: "destructive" });
+      }
+    } finally {
+      setSalvando(false);
+    }
+  };
+
   const gerarPDF = async () => {
     if (!pdfRef.current) return;
     setShowPreview(true);
@@ -161,14 +177,9 @@ export default function Index() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
-      // No download - we'll open in new tab below
-
-      // Open PDF in new tab
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-
-      await salvarOrcamento(dados, valorTotal);
+      const nome = sanitizeFileName(nomeExibicao || "SemNome");
+      const dataFormatada = hoje().replace(/\//g, "-");
+      pdf.save(`Orcamento_${nome}_${dataFormatada}.pdf`);
     } finally {
       setGerando(false);
     }
@@ -497,6 +508,15 @@ export default function Index() {
               >
                 <Eye size={16} className="mr-2" />
                 {showPreview ? "Ocultar Preview" : "Visualizar Orçamento"}
+              </Button>
+              <Button
+                onClick={salvar}
+                disabled={salvando}
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold"
+              >
+                <History size={16} className="mr-2" />
+                {salvando ? "Salvando..." : "Salvar no Histórico"}
               </Button>
               <Button
                 onClick={gerarPDF}

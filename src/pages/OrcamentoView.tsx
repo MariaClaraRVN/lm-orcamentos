@@ -60,9 +60,7 @@ export default function OrcamentoView() {
     try {
       const pdf = await buildPDF();
       if (pdf) {
-        const blob = pdf.output("blob");
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+        pdf.save(getFileName());
       }
     } finally {
       setGerando(false);
@@ -81,9 +79,8 @@ export default function OrcamentoView() {
       if (typeof navigator.share === "function" && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file] });
       } else {
-        // Fallback: open in new tab
-        const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+        // Fallback desktop: download directly
+        pdf.save(getFileName());
       }
     } catch {
       toast({ title: "Erro ao compartilhar", description: "Não foi possível compartilhar o arquivo.", variant: "destructive" });
