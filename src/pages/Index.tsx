@@ -73,6 +73,8 @@ export default function Index() {
   const [clienteEndereco, setClienteEndereco] = useState(orcamentoParaEditar?.clienteEndereco ?? "");
   const [clienteEmail, setClienteEmail] = useState(orcamentoParaEditar?.clienteEmail ?? "");
   const [clienteTelefone, setClienteTelefone] = useState(orcamentoParaEditar?.clienteTelefone ?? "");
+  const [marcaMaquina, setMarcaMaquina] = useState(orcamentoParaEditar?.marcaMaquina ?? "");
+  const [modeloMaquina, setModeloMaquina] = useState(orcamentoParaEditar?.modeloMaquina ?? "");
   const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
   const [itens, setItens] = useState<ItemOrcamento[]>(
     orcamentoParaEditar?.itens?.length
@@ -108,6 +110,8 @@ export default function Index() {
     clienteEmail,
     clienteTelefone,
     tipoPessoa,
+    marcaMaquina,
+    modeloMaquina,
     itens,
     observacoes,
     total: valorTotal,
@@ -328,18 +332,44 @@ export default function Index() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="telefone" className="text-xs font-semibold text-muted-foreground uppercase">
-                    Telefone (opcional)
-                  </Label>
-                  <Input
-                    id="telefone"
-                    placeholder="(11) 99999-9999"
-                    value={clienteTelefone}
-                    onChange={(e) => setClienteTelefone(maskTelefone(e.target.value))}
-                    className="border-input focus-visible:ring-primary"
-                  />
-                </div>
-              </div>
+                   <Label htmlFor="telefone" className="text-xs font-semibold text-muted-foreground uppercase">
+                     Telefone (opcional)
+                   </Label>
+                   <Input
+                     id="telefone"
+                     placeholder="(11) 99999-9999"
+                     value={clienteTelefone}
+                     onChange={(e) => setClienteTelefone(maskTelefone(e.target.value))}
+                     className="border-input focus-visible:ring-primary"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <Label htmlFor="marcaMaquina" className="text-xs font-semibold text-muted-foreground uppercase">
+                     Marca da Máquina (opcional)
+                   </Label>
+                   <Input
+                     id="marcaMaquina"
+                     placeholder="Ex: Caterpillar"
+                     value={marcaMaquina}
+                     maxLength={40}
+                     onChange={(e) => setMarcaMaquina(e.target.value)}
+                     className="border-input focus-visible:ring-primary"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <Label htmlFor="modeloMaquina" className="text-xs font-semibold text-muted-foreground uppercase">
+                     Modelo da Máquina (opcional)
+                   </Label>
+                   <Input
+                     id="modeloMaquina"
+                     placeholder="Ex: 320D"
+                     value={modeloMaquina}
+                     maxLength={40}
+                     onChange={(e) => setModeloMaquina(e.target.value)}
+                     className="border-input focus-visible:ring-primary"
+                   />
+                 </div>
+               </div>
             </div>
 
             {/* Items */}

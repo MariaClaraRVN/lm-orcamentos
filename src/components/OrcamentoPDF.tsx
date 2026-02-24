@@ -18,6 +18,8 @@ export interface DadosOrcamento {
   clienteEmail?: string;
   clienteTelefone?: string;
   tipoPessoa?: "juridica" | "fisica";
+  marcaMaquina?: string;
+  modeloMaquina?: string;
   itens: ItemOrcamento[];
   observacoes?: string;
   total?: number;
@@ -135,6 +137,16 @@ const OrcamentoPDF = React.forwardRef<HTMLDivElement, OrcamentoPDFProps>(
               <span><strong>Telefone:</strong> {dados.clienteTelefone}</span>
             )}
           </div>
+          {(dados.marcaMaquina || dados.modeloMaquina) && (
+            <div style={{ display: "flex", gap: "40px", flexWrap: "wrap", marginTop: "4px", fontSize: "13px" }}>
+              {dados.marcaMaquina && (
+                <span><strong>Marca da Máquina:</strong> {dados.marcaMaquina}</span>
+              )}
+              {dados.modeloMaquina && (
+                <span><strong>Modelo da Máquina:</strong> {dados.modeloMaquina}</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Items Table */}
