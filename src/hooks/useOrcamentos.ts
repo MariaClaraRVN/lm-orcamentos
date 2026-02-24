@@ -13,6 +13,8 @@ export interface OrcamentoSalvo {
   cliente_email: string;
   cliente_telefone: string;
   tipo_pessoa: string;
+  marca_maquina: string;
+  modelo_maquina: string;
   observacoes: string;
   total: number;
   created_at: string;
@@ -33,6 +35,8 @@ export async function salvarOrcamento(dados: DadosOrcamento, total: number): Pro
       cliente_email: dados.clienteEmail ?? "",
       cliente_telefone: dados.clienteTelefone ?? "",
       tipo_pessoa: dados.tipoPessoa ?? "juridica",
+      marca_maquina: dados.marcaMaquina ?? "",
+      modelo_maquina: dados.modeloMaquina ?? "",
       observacoes: dados.observacoes ?? "",
       total,
     })

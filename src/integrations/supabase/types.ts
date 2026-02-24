@@ -61,6 +61,8 @@ export type Database = {
           created_at: string
           data: string
           id: string
+          marca_maquina: string
+          modelo_maquina: string
           numero: string
           observacoes: string
           tipo_pessoa: string
@@ -77,6 +79,8 @@ export type Database = {
           created_at?: string
           data: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           numero: string
           observacoes?: string
           tipo_pessoa?: string
@@ -93,6 +97,8 @@ export type Database = {
           created_at?: string
           data?: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           numero?: string
           observacoes?: string
           tipo_pessoa?: string
