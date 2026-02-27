@@ -69,15 +69,6 @@ export default function OrdensServicoHistorico() {
           </Link>
         </div>
 
-        {/* Filtros */}
-        <div className="flex flex-wrap gap-1.5">
-          <Button size="sm" variant={filtroStatus === "todos" ? "default" : "outline"} onClick={() => setFiltroStatus("todos")} className={`text-xs h-7 px-2 ${filtroStatus === "todos" ? "bg-primary text-primary-foreground" : "border-primary text-primary"}`}>Todos</Button>
-          {Object.entries(STATUS_LABELS).map(([key, label]) => (
-            <Button key={key} size="sm" variant={filtroStatus === key ? "default" : "outline"} onClick={() => setFiltroStatus(key)} className={`text-[10px] sm:text-xs h-7 px-1.5 sm:px-2 ${filtroStatus === key ? "bg-primary text-primary-foreground" : "border-border text-foreground"}`}>
-              {label}
-            </Button>
-          ))}
-        </div>
 
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Carregando...</div>
