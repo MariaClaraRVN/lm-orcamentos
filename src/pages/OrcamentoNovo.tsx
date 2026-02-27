@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, FileDown, Eye, History } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,62 +10,37 @@ import { salvarOrcamento } from "@/hooks/useOrcamentos";
 import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import PageHeader from "@/components/PageHeader";
 
 const formatMoeda = (valor: number) =>
   valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const gerarId = () => Math.random().toString(36).substring(2, 9);
+const hoje = () => new Date().toLocaleDateString("pt-BR");
 
-const hoje = () => {
-  const d = new Date();
-  return d.toLocaleDateString("pt-BR");
-};
-
-// Masks
 const maskCNPJ = (v: string) => {
-  const digits = v.replace(/\D/g, "").slice(0, 14);
-  return digits
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  return d.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
 };
-
 const maskCPF = (v: string) => {
-  const digits = v.replace(/\D/g, "").slice(0, 11);
-  return digits
-    .replace(/^(\d{3})(\d)/, "$1.$2")
-    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1-$2");
 };
-
 const maskTelefone = (v: string) => {
-  const digits = v.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 };
+const sanitizeFileName = (name: string) => name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
 
-const sanitizeFileName = (name: string) =>
-  name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
+const LIMITS = { nome: 40, endereco: 80, descricao: 80, observacoes: 80 };
 
-// Character limits
-const LIMITS = {
-  nome: 40,
-  cnpj: 14,
-  cpf: 12,
-  endereco: 80,
-  descricao: 80,
-  observacoes: 80,
-};
-
-export default function Index() {
+export default function OrcamentoNovo() {
   const location = useLocation();
   const orcamentoParaEditar = (location.state as any)?.orcamentoParaEditar;
 
-  const [tipoPessoa, setTipoPessoa] = useState<"juridica" | "fisica">(
-    orcamentoParaEditar?.tipoPessoa ?? "juridica"
-  );
+  const [tipoPessoa, setTipoPessoa] = useState<"juridica" | "fisica">(orcamentoParaEditar?.tipoPessoa ?? "juridica");
   const [clienteNome, setClienteNome] = useState(orcamentoParaEditar?.clienteNome ?? "");
   const [clienteCnpj, setClienteCnpj] = useState(orcamentoParaEditar?.clienteCnpj ?? "");
   const [clienteCpf, setClienteCpf] = useState(orcamentoParaEditar?.clienteCpf ?? "");
@@ -77,496 +52,208 @@ export default function Index() {
   const [modeloMaquina, setModeloMaquina] = useState(orcamentoParaEditar?.modeloMaquina ?? "");
   const [observacoes, setObservacoes] = useState(orcamentoParaEditar?.observacoes ?? "");
   const [itens, setItens] = useState<ItemOrcamento[]>(
-    orcamentoParaEditar?.itens?.length
-      ? orcamentoParaEditar.itens
-      : [{ id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 }]
+    orcamentoParaEditar?.itens?.length ? orcamentoParaEditar.itens : [{ id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 }]
   );
   const [showPreview, setShowPreview] = useState(false);
   const [gerando, setGerando] = useState(false);
   const [valorTotal, setValorTotal] = useState<number>(orcamentoParaEditar?.valorTotal ?? 0);
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (orcamentoParaEditar) {
-      toast({
-        title: "Orçamento reaberto",
-        description: `Dados de "${orcamentoParaEditar.clienteNome || orcamentoParaEditar.clienteNomePessoa || "cliente"}" carregados no formulário.`,
-      });
+      toast({ title: "Orçamento reaberto", description: `Dados de "${orcamentoParaEditar.clienteNome || orcamentoParaEditar.clienteNomePessoa || "cliente"}" carregados.` });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pdfRef = useRef<HTMLDivElement>(null);
-
   const nomeExibicao = tipoPessoa === "fisica" ? clienteNomePessoa : clienteNome;
 
   const dados: DadosOrcamento = {
-    numero: "", // auto-generated by DB
-    data: hoje(),
-    clienteNome,
-    clienteCnpj,
-    clienteEndereco,
-    clienteCpf,
-    clienteNomePessoa,
-    clienteEmail,
-    clienteTelefone,
-    tipoPessoa,
-    marcaMaquina,
-    modeloMaquina,
-    itens,
-    observacoes,
-    total: valorTotal,
+    numero: "", data: hoje(), clienteNome, clienteCnpj, clienteEndereco,
+    clienteCpf, clienteNomePessoa, clienteEmail, clienteTelefone,
+    tipoPessoa, marcaMaquina, modeloMaquina, itens, observacoes, total: valorTotal,
   };
 
-  const addItem = () => {
-    setItens((prev) => [
-      ...prev,
-      { id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 },
-    ]);
+  const addItem = () => setItens((p) => [...p, { id: gerarId(), quantidade: 1, descricao: "", valorUnitario: 0 }]);
+  const removeItem = (id: string) => { if (itens.length > 1) setItens((p) => p.filter((i) => i.id !== id)); };
+  const updateItem = (id: string, field: keyof ItemOrcamento, value: string | number) => {
+    setItens((p) => p.map((i) => i.id === id ? { ...i, [field]: value } : i));
   };
-
-  const removeItem = (id: string) => {
-    if (itens.length === 1) return;
-    setItens((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  const updateItem = (
-    id: string,
-    field: keyof ItemOrcamento,
-    value: string | number
-  ) => {
-    setItens((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  const [salvando, setSalvando] = useState(false);
 
   const salvar = async () => {
     setSalvando(true);
     try {
       const id = await salvarOrcamento(dados, valorTotal);
-      if (id) {
-        toast({ title: "Salvo!", description: "Orçamento salvo no histórico com sucesso." });
-      } else {
-        toast({ title: "Erro ao salvar", description: "Não foi possível salvar o orçamento.", variant: "destructive" });
-      }
-    } finally {
-      setSalvando(false);
-    }
+      if (id) toast({ title: "Salvo!", description: "Orçamento salvo no histórico." });
+      else toast({ title: "Erro ao salvar", variant: "destructive" });
+    } finally { setSalvando(false); }
   };
 
   const gerarPDF = async () => {
     if (!pdfRef.current) return;
     setShowPreview(true);
     setGerando(true);
-
     await new Promise((r) => setTimeout(r, 500));
-
     try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
+      const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "px",
-        format: "a4",
-      });
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
       const nome = sanitizeFileName(nomeExibicao || "SemNome");
-      const dataFormatada = hoje().replace(/\//g, "-");
-      pdf.save(`Orcamento_${nome}_${dataFormatada}.pdf`);
-    } finally {
-      setGerando(false);
-    }
+      pdf.save(`Orcamento_${nome}_${hoje().replace(/\//g, "-")}.pdf`);
+    } finally { setGerando(false); }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-[hsl(var(--brand-black))] text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link to="/">
-              <img style={{maxWidth: "150px", margin: "0 auto"}} src="/Icon.png" alt="Logo LM" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400 hidden sm:block">Sistema de Gestão</span>
-            <Link to="/historico">
-              <Button variant="outline" size="sm" className="border-[hsl(var(--brand-green-light))] text-[hsl(var(--brand-green-light))] hover:bg-[hsl(var(--brand-green-light))] hover:text-black">
-                <History size={14} className="mr-1" />
-                Histórico
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      <PageHeader titulo="Novo Orçamento">
+        <Link to="/historico">
+          <Button variant="outline" size="sm" className="border-[hsl(var(--brand-green-light))] text-[hsl(var(--brand-green-light))] hover:bg-[hsl(var(--brand-green-light))] hover:text-[hsl(var(--brand-black))] text-xs px-2 sm:px-3">
+            <History size={14} className="mr-1" /> <span className="hidden sm:inline">Histórico</span>
+          </Button>
+        </Link>
+      </PageHeader>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6 space-y-4">
         <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
-          <div className="bg-primary px-6 py-3">
-            <h2 className="text-primary-foreground font-bold text-base">Novo Orçamento Comercial</h2>
+          <div className="bg-primary px-4 py-2.5">
+            <h2 className="text-primary-foreground font-bold text-sm">Novo Orçamento Comercial</h2>
           </div>
 
-          <div className="p-6 space-y-6">
-            {/* Tipo Pessoa Toggle */}
+          <div className="p-4 space-y-5">
+            {/* Tipo Pessoa */}
             <div>
-              <h3 className="text-primary font-bold text-sm mb-3 uppercase tracking-wide border-b border-border pb-2">
-                Tipo de Cliente
-              </h3>
+              <h3 className="text-primary font-bold text-xs mb-2 uppercase tracking-wide border-b border-border pb-1.5">Tipo de Cliente</h3>
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={tipoPessoa === "juridica" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTipoPessoa("juridica")}
-                  className={tipoPessoa === "juridica" ? "bg-primary text-primary-foreground" : "border-primary text-primary"}
-                >
-                  Pessoa Jurídica
-                </Button>
-                <Button
-                  type="button"
-                  variant={tipoPessoa === "fisica" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTipoPessoa("fisica")}
-                  className={tipoPessoa === "fisica" ? "bg-primary text-primary-foreground" : "border-primary text-primary"}
-                >
-                  Pessoa Física
-                </Button>
+                <Button type="button" variant={tipoPessoa === "juridica" ? "default" : "outline"} size="sm" onClick={() => setTipoPessoa("juridica")} className={`text-xs ${tipoPessoa === "juridica" ? "bg-primary text-primary-foreground" : "border-primary text-primary"}`}>Pessoa Jurídica</Button>
+                <Button type="button" variant={tipoPessoa === "fisica" ? "default" : "outline"} size="sm" onClick={() => setTipoPessoa("fisica")} className={`text-xs ${tipoPessoa === "fisica" ? "bg-primary text-primary-foreground" : "border-primary text-primary"}`}>Pessoa Física</Button>
               </div>
             </div>
 
             {/* Client Data */}
             <div>
-              <h3 className="text-primary font-bold text-sm mb-3 uppercase tracking-wide border-b border-border pb-2">
-                Dados do Cliente
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <h3 className="text-primary font-bold text-xs mb-2 uppercase tracking-wide border-b border-border pb-1.5">Dados do Cliente</h3>
+              <div className="grid grid-cols-1 gap-3">
                 {tipoPessoa === "juridica" ? (
                   <>
                     <div className="space-y-1">
-                      <Label htmlFor="empresa" className="text-xs font-semibold text-muted-foreground uppercase">
-                        Empresa <span className="text-xs font-normal normal-case">({clienteNome.length}/{LIMITS.nome})</span>
-                      </Label>
-                      <Input
-                        id="empresa"
-                        placeholder="Nome da empresa"
-                        value={clienteNome}
-                        maxLength={LIMITS.nome}
-                        onChange={(e) => setClienteNome(e.target.value)}
-                        className="border-input focus-visible:ring-primary"
-                      />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Empresa ({clienteNome.length}/{LIMITS.nome})</Label>
+                      <Input placeholder="Nome da empresa" value={clienteNome} maxLength={LIMITS.nome} onChange={(e) => setClienteNome(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="cnpj" className="text-xs font-semibold text-muted-foreground uppercase">CNPJ</Label>
-                      <Input
-                        id="cnpj"
-                        placeholder="00.000.000/0000-00"
-                        value={clienteCnpj}
-                        onChange={(e) => setClienteCnpj(maskCNPJ(e.target.value))}
-                        className="border-input focus-visible:ring-primary"
-                      />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CNPJ</Label>
+                      <Input placeholder="00.000.000/0000-00" value={clienteCnpj} onChange={(e) => setClienteCnpj(maskCNPJ(e.target.value))} className="h-9 text-sm" />
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="space-y-1">
-                      <Label htmlFor="nomePessoa" className="text-xs font-semibold text-muted-foreground uppercase">
-                        Nome <span className="text-xs font-normal normal-case">({clienteNomePessoa.length}/{LIMITS.nome})</span>
-                      </Label>
-                      <Input
-                        id="nomePessoa"
-                        placeholder="Nome completo"
-                        value={clienteNomePessoa}
-                        maxLength={LIMITS.nome}
-                        onChange={(e) => setClienteNomePessoa(e.target.value)}
-                        className="border-input focus-visible:ring-primary"
-                      />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Nome ({clienteNomePessoa.length}/{LIMITS.nome})</Label>
+                      <Input placeholder="Nome completo" value={clienteNomePessoa} maxLength={LIMITS.nome} onChange={(e) => setClienteNomePessoa(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="cpf" className="text-xs font-semibold text-muted-foreground uppercase">CPF</Label>
-                      <Input
-                        id="cpf"
-                        placeholder="000.000.000-00"
-                        value={clienteCpf}
-                        onChange={(e) => setClienteCpf(maskCPF(e.target.value))}
-                        className="border-input focus-visible:ring-primary"
-                      />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CPF</Label>
+                      <Input placeholder="000.000.000-00" value={clienteCpf} onChange={(e) => setClienteCpf(maskCPF(e.target.value))} className="h-9 text-sm" />
                     </div>
                   </>
                 )}
-                <div className="sm:col-span-2 space-y-1">
-                  <Label htmlFor="endereco" className="text-xs font-semibold text-muted-foreground uppercase">
-                    Endereço (opcional) <span className="text-xs font-normal normal-case">({clienteEndereco.length}/{LIMITS.endereco})</span>
-                  </Label>
-                  <Input
-                    id="endereco"
-                    placeholder="Rua, número, bairro, cidade"
-                    value={clienteEndereco}
-                    maxLength={LIMITS.endereco}
-                    onChange={(e) => setClienteEndereco(e.target.value)}
-                    className="border-input focus-visible:ring-primary"
-                  />
-                </div>
                 <div className="space-y-1">
-                  <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase">
-                    Email (opcional)
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="email@exemplo.com"
-                    value={clienteEmail}
-                    maxLength={80}
-                    onChange={(e) => setClienteEmail(e.target.value)}
-                    className="border-input focus-visible:ring-primary"
-                  />
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Endereço ({clienteEndereco.length}/{LIMITS.endereco})</Label>
+                  <Input placeholder="Rua, número, bairro, cidade" value={clienteEndereco} maxLength={LIMITS.endereco} onChange={(e) => setClienteEndereco(e.target.value)} className="h-9 text-sm" />
                 </div>
-                <div className="space-y-1">
-                   <Label htmlFor="telefone" className="text-xs font-semibold text-muted-foreground uppercase">
-                     Telefone (opcional)
-                   </Label>
-                   <Input
-                     id="telefone"
-                     placeholder="(11) 99999-9999"
-                     value={clienteTelefone}
-                     onChange={(e) => setClienteTelefone(maskTelefone(e.target.value))}
-                     className="border-input focus-visible:ring-primary"
-                   />
-                 </div>
-                 <div className="space-y-1">
-                   <Label htmlFor="marcaMaquina" className="text-xs font-semibold text-muted-foreground uppercase">
-                     Marca da Máquina (opcional)
-                   </Label>
-                   <Input
-                     id="marcaMaquina"
-                     placeholder="Ex: Caterpillar"
-                     value={marcaMaquina}
-                     maxLength={40}
-                     onChange={(e) => setMarcaMaquina(e.target.value)}
-                     className="border-input focus-visible:ring-primary"
-                   />
-                 </div>
-                 <div className="space-y-1">
-                   <Label htmlFor="modeloMaquina" className="text-xs font-semibold text-muted-foreground uppercase">
-                     Modelo da Máquina (opcional)
-                   </Label>
-                   <Input
-                     id="modeloMaquina"
-                     placeholder="Ex: 320D"
-                     value={modeloMaquina}
-                     maxLength={40}
-                     onChange={(e) => setModeloMaquina(e.target.value)}
-                     className="border-input focus-visible:ring-primary"
-                   />
-                 </div>
-               </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Email (opcional)</Label>
+                    <Input type="email" placeholder="email@exemplo.com" value={clienteEmail} maxLength={80} onChange={(e) => setClienteEmail(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Telefone (opcional)</Label>
+                    <Input placeholder="(11) 99999-9999" value={clienteTelefone} onChange={(e) => setClienteTelefone(maskTelefone(e.target.value))} className="h-9 text-sm" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Marca da Máquina (opcional)</Label>
+                    <Input placeholder="Ex: Caterpillar" value={marcaMaquina} maxLength={40} onChange={(e) => setMarcaMaquina(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Modelo (opcional)</Label>
+                    <Input placeholder="Ex: 320D" value={modeloMaquina} maxLength={40} onChange={(e) => setModeloMaquina(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Items */}
             <div>
-              <h3 className="text-primary font-bold text-sm mb-3 uppercase tracking-wide border-b border-border pb-2">
-                Itens do Orçamento
-              </h3>
-
-              <div className="hidden sm:grid grid-cols-12 gap-2 mb-2 px-2">
-                <span className="col-span-1 text-xs font-bold text-muted-foreground uppercase">Qtd</span>
-                <span className="col-span-7 text-xs font-bold text-muted-foreground uppercase">Descrição</span>
-                <span className="col-span-3 text-xs font-bold text-muted-foreground uppercase">V. Unit. (opcional)</span>
-                <span className="col-span-1"></span>
-              </div>
-
+              <h3 className="text-primary font-bold text-xs mb-2 uppercase tracking-wide border-b border-border pb-1.5">Itens do Orçamento</h3>
               <div className="space-y-2">
                 {itens.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className={`p-3 rounded ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}
-                  >
-                    {/* Desktop layout */}
-                    <div className="hidden sm:grid grid-cols-12 gap-2">
-                      <div className="col-span-1">
-                        <Input
-                          type="number"
-                          min={1}
-                          value={item.quantidade}
-                          onChange={(e) =>
-                            updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)
-                          }
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="col-span-7">
-                        <Input
-                          placeholder="Descrição do serviço/produto"
-                          value={item.descricao}
-                          maxLength={LIMITS.descricao}
-                          onChange={(e) =>
-                            updateItem(item.id, "descricao", e.target.value)
-                          }
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="col-span-3">
-                        <Input
-                          type="number"
-                          min={0}
-                          step={0.01}
-                          placeholder="Opcional"
-                          value={item.valorUnitario === 0 ? "" : item.valorUnitario}
-                          onChange={(e) =>
-                            updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)
-                          }
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div className="col-span-1 flex items-center justify-center">
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          disabled={itens.length === 1}
-                          className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"
-                          title="Remover item"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Mobile layout */}
-                    <div className="sm:hidden space-y-2">
+                  <div key={item.id} className={`p-2.5 rounded ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}>
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-muted-foreground">Item {idx + 1}</span>
-                        <button
-                          onClick={() => removeItem(item.id)}
-                          disabled={itens.length === 1}
-                          className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"
-                          title="Remover item"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <span className="text-[10px] font-bold text-muted-foreground">Item {idx + 1}</span>
+                        <button onClick={() => removeItem(item.id)} disabled={itens.length === 1} className="text-destructive hover:text-destructive/80 disabled:opacity-30 transition-colors"><Trash2 size={14} /></button>
                       </div>
-                      <Input
-                        placeholder="Descrição do serviço/produto"
-                        value={item.descricao}
-                        maxLength={LIMITS.descricao}
-                        onChange={(e) => updateItem(item.id, "descricao", e.target.value)}
-                        className="h-9 text-sm"
-                      />
+                      <Input placeholder="Descrição do serviço/produto" value={item.descricao} maxLength={LIMITS.descricao} onChange={(e) => updateItem(item.id, "descricao", e.target.value)} className="h-8 text-sm" />
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <Label className="text-[10px] text-muted-foreground">Qtd</Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={item.quantidade}
-                            onChange={(e) => updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)}
-                            className="h-8 text-sm"
-                          />
+                          <Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", parseInt(e.target.value) || 1)} className="h-8 text-sm" />
                         </div>
                         <div>
                           <Label className="text-[10px] text-muted-foreground">V. Unit. (opcional)</Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            step={0.01}
-                            placeholder="Opcional"
-                            value={item.valorUnitario === 0 ? "" : item.valorUnitario}
-                            onChange={(e) => updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)}
-                            className="h-8 text-sm"
-                          />
+                          <Input type="number" min={0} step={0.01} placeholder="Opcional" value={item.valorUnitario === 0 ? "" : item.valorUnitario} onChange={(e) => updateItem(item.id, "valorUnitario", parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addItem}
-                className="mt-3 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <Plus size={14} className="mr-1" />
-                Adicionar Item
+              <Button variant="outline" size="sm" onClick={addItem} className="mt-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs">
+                <Plus size={13} className="mr-1" /> Adicionar Item
               </Button>
 
-              {/* Valor Total */}
-              <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-end gap-2">
-                <Label className="text-sm font-bold text-foreground">Valor Total do Orçamento (R$):</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  placeholder="0,00"
-                  value={valorTotal === 0 ? "" : valorTotal}
-                  onChange={(e) => setValorTotal(parseFloat(e.target.value) || 0)}
-                  className="w-full sm:w-48 h-10 text-lg font-bold"
-                />
+              <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-end gap-2">
+                <Label className="text-xs font-bold text-foreground">Valor Total (R$):</Label>
+                <Input type="number" min={0} step={0.01} placeholder="0,00" value={valorTotal === 0 ? "" : valorTotal} onChange={(e) => setValorTotal(parseFloat(e.target.value) || 0)} className="w-full sm:w-48 h-9 text-base font-bold" />
               </div>
             </div>
 
-            {/* Observations */}
+            {/* Observações */}
             <div>
-              <h3 className="text-primary font-bold text-sm mb-3 uppercase tracking-wide border-b border-border pb-2">
-                Observações Adicionais (opcional) <span className="text-xs font-normal normal-case">({observacoes.length}/{LIMITS.observacoes})</span>
+              <h3 className="text-primary font-bold text-xs mb-2 uppercase tracking-wide border-b border-border pb-1.5">
+                Observações (opcional) <span className="text-[10px] font-normal normal-case">({observacoes.length}/{LIMITS.observacoes})</span>
               </h3>
-              <Textarea
-                placeholder="Informações complementares..."
-                value={observacoes}
-                maxLength={LIMITS.observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                rows={3}
-                className="resize-none"
-              />
+              <Textarea placeholder="Informações complementares..." value={observacoes} maxLength={LIMITS.observacoes} onChange={(e) => setObservacoes(e.target.value)} rows={3} className="resize-none text-sm" />
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button
-                onClick={() => setShowPreview(!showPreview)}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <Eye size={16} className="mr-2" />
-                {showPreview ? "Ocultar Preview" : "Visualizar Orçamento"}
+            <div className="flex flex-col gap-2 pt-2">
+              <Button onClick={() => setShowPreview(!showPreview)} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-sm w-full sm:w-auto">
+                <Eye size={15} className="mr-2" /> {showPreview ? "Ocultar Preview" : "Visualizar Orçamento"}
               </Button>
-              <Button
-                onClick={salvar}
-                disabled={salvando}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold"
-              >
-                <History size={16} className="mr-2" />
-                {salvando ? "Salvando..." : "Salvar no Histórico"}
-              </Button>
-              <Button
-                onClick={gerarPDF}
-                disabled={gerando}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-              >
-                <FileDown size={16} className="mr-2" />
-                {gerando ? "Gerando PDF..." : "Baixar PDF"}
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={salvar} disabled={salvando} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-bold text-sm flex-1 sm:flex-none">
+                  <History size={15} className="mr-2" /> {salvando ? "Salvando..." : "Salvar"}
+                </Button>
+                <Button onClick={gerarPDF} disabled={gerando} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm flex-1 sm:flex-none">
+                  <FileDown size={15} className="mr-2" /> {gerando ? "Gerando..." : "Baixar PDF"}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Preview */}
         {showPreview && (
           <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
-            <div className="bg-primary px-6 py-3">
-              <h2 className="text-primary-foreground font-bold text-base">Preview do Orçamento</h2>
+            <div className="bg-primary px-4 py-2.5">
+              <h2 className="text-primary-foreground font-bold text-sm">Preview do Orçamento</h2>
             </div>
-            <div className="p-4 overflow-x-auto bg-gray-100">
+            <div className="p-3 overflow-x-auto bg-gray-100">
               <div className="shadow-xl inline-block">
                 <OrcamentoPDF ref={pdfRef} dados={dados} />
               </div>
@@ -574,23 +261,14 @@ export default function Index() {
           </div>
         )}
 
-        {/* Hidden PDF render */}
         {!showPreview && (
-          <div
-            style={{
-              position: "fixed",
-              left: "-9999px",
-              top: 0,
-              pointerEvents: "none",
-              opacity: 0,
-            }}
-          >
+          <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none", opacity: 0 }}>
             <OrcamentoPDF ref={pdfRef} dados={dados} />
           </div>
         )}
       </main>
 
-      <footer className="mt-12 bg-[hsl(var(--brand-black))] text-gray-400 text-xs text-center py-4">
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
         LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
       </footer>
     </div>
