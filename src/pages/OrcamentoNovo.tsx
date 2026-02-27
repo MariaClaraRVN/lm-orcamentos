@@ -82,6 +82,15 @@ export default function OrcamentoNovo() {
   };
 
   const salvar = async () => {
+    const nome = tipoPessoa === "juridica" ? clienteNome.trim() : clienteNomePessoa.trim();
+    if (!nome) {
+      toast({ title: "Campo obrigatório", description: tipoPessoa === "juridica" ? "Preencha o nome da empresa." : "Preencha o nome do cliente.", variant: "destructive" });
+      return;
+    }
+    if (!itens.some((i) => i.descricao.trim())) {
+      toast({ title: "Campo obrigatório", description: "Adicione pelo menos um item com descrição.", variant: "destructive" });
+      return;
+    }
     setSalvando(true);
     try {
       const id = await salvarOrcamento(dados, valorTotal);
