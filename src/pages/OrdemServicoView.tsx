@@ -193,19 +193,14 @@ export default function OrdemServicoView() {
               <InfoRow label="Tipo" value={os.tipo_maquina === "gerador" ? "Gerador" : "Compressor"} />
               <InfoRow label="Marca" value={os.marca} />
               <InfoRow label="Modelo" value={os.modelo} />
-              <InfoRow label="Nº Série" value={os.numero_serie} />
               <InfoRow label="Horímetro" value={os.horimetro} />
-              <InfoRow label="Potência" value={os.potencia} />
               <InfoRow label="Tensão" value={os.tensao} />
-              <InfoRow label="Estado" value={os.estado_geral} />
               <InfoRow label="Acessórios" value={os.acessorios_entregues} />
 
               <h4 className="text-[10px] font-bold text-muted-foreground uppercase mt-3">Dados da Retirada</h4>
               <InfoRow label="Data" value={os.data_retirada} />
-              <InfoRow label="Hora" value={os.hora_retirada} />
               <InfoRow label="Local" value={os.local_coleta} />
               <InfoRow label="Responsável" value={os.responsavel_retirada} />
-              <InfoRow label="Placa" value={os.placa_veiculo} />
               <InfoRow label="Defeito" value={os.defeito_relatado} />
               <GaleriaMidias items={midiasRetirada} />
               {os.clausula_permanencia && (

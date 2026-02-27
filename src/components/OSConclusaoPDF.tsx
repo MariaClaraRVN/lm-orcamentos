@@ -62,7 +62,6 @@ const OSConclusaoPDF = React.forwardRef<HTMLDivElement, Props>(
           <div style={{ fontWeight: 700, marginBottom: "4px", color: "#16a34a", textTransform: "uppercase" }}>Equipamento</div>
           <Row label="Tipo" value={os.tipo_maquina === "gerador" ? "Gerador" : "Compressor"} />
           <Row label="Marca / Modelo" value={`${os.marca} ${os.modelo}`.trim()} />
-          <Row label="Nº Série" value={os.numero_serie} />
         </div>
 
         {/* Conclusão */}
