@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react";
 import { listarOrcamentos, excluirOrcamento, OrcamentoSalvo } from "@/hooks/useOrcamentos";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, User, DollarSign, Eye, Trash2 } from "lucide-react";
+import { FileText, Calendar, User, DollarSign, Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
+import PageHeader from "@/components/PageHeader";
 
 const formatMoeda = (valor: number) =>
   Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -38,7 +33,6 @@ export default function Historico() {
     if (!confirmId) return;
     setDeletandoId(confirmId);
     setConfirmId(null);
-
     const ok = await excluirOrcamento(confirmId);
     if (ok) {
       setOrcamentos((prev) => prev.filter((o) => o.id !== confirmId));
@@ -55,25 +49,14 @@ export default function Historico() {
   const orcamentoParaExcluir = orcamentos.find((o) => o.id === confirmId);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-[hsl(var(--brand-black))] text-white shadow-lg">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* <span className="text-white font-black text-2xl tracking-wide">L</span>
-            <span className="text-[hsl(var(--brand-green-light))] font-black text-2xl">⚡M MANUTENÇÕES</span> */}
-            <img style={{maxWidth: "100px", margin: "0 auto"}} src="/Icon.png" alt="Logo LM" />
-          </div>
-          <span className="text-sm text-gray-400 hidden sm:block">Histórico de Orçamentos</span>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      <PageHeader titulo="Histórico de Orçamentos" />
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Histórico de Orçamentos</h1>
-          <Link to="/">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              <ArrowLeft size={16} className="mr-2" />
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground">Histórico de Orçamentos</h1>
+          <Link to="/orcamento/novo">
+            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs">
               Novo Orçamento
             </Button>
           </Link>
@@ -82,73 +65,58 @@ export default function Historico() {
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Carregando...</div>
         ) : orcamentos.length === 0 ? (
-          <div className="bg-card rounded-lg shadow-sm border border-border p-12 text-center">
-            <FileText size={48} className="mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground text-lg">Nenhum orçamento gerado ainda.</p>
-            <Link to="/">
-              <Button className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground">
+          <div className="bg-card rounded-lg shadow-sm border border-border p-8 sm:p-12 text-center">
+            <FileText size={40} className="mx-auto mb-4 text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground text-base sm:text-lg">Nenhum orçamento gerado ainda.</p>
+            <Link to="/orcamento/novo">
+              <Button className="mt-4 bg-primary hover:bg-primary/90 text-primary-foreground text-sm">
                 Criar primeiro orçamento
               </Button>
             </Link>
           </div>
         ) : (
           <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
-            <div className="bg-primary px-6 py-3">
-              <h2 className="text-primary-foreground font-bold text-base">
+            <div className="bg-primary px-4 sm:px-6 py-3">
+              <h2 className="text-primary-foreground font-bold text-sm sm:text-base">
                 {orcamentos.length} orçamento{orcamentos.length !== 1 ? "s" : ""} gerado{orcamentos.length !== 1 ? "s" : ""}
               </h2>
             </div>
             <div className="divide-y divide-border">
               {orcamentos.map((orc, idx) => (
-                <div
-                  key={orc.id}
-                  className={`p-4 ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
+                <div key={orc.id} className={`p-3 sm:p-4 ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"}`}>
+                  <div className="flex flex-col gap-2">
+                    <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <FileText size={16} className="text-primary" />
-                        <span className="font-bold text-foreground">
+                        <FileText size={14} className="text-primary shrink-0" />
+                        <span className="font-bold text-foreground text-sm truncate">
                           Orçamento-{sanitizeFileName(getNomeCliente(orc))}-{orc.data}
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <User size={13} />
-                          {getNomeCliente(orc)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar size={13} />
-                          {orc.data}
-                        </span>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><User size={12} />{getNomeCliente(orc)}</span>
+                        <span className="flex items-center gap-1"><Calendar size={12} />{orc.data}</span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-lg font-bold text-foreground">
-                          <DollarSign size={16} className="text-primary" />
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1 text-base sm:text-lg font-bold text-foreground">
+                          <DollarSign size={14} className="text-primary" />
                           {formatMoeda(orc.total)}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[10px] text-muted-foreground">
                           {new Date(orc.created_at).toLocaleString("pt-BR")}
                         </div>
                       </div>
-                      <Link to={`/orcamento/${orc.id}`}>
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                          <Eye size={14} className="mr-1" />
-                          Abrir
+                      <div className="flex items-center gap-2">
+                        <Link to={`/orcamento/${orc.id}`}>
+                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8 px-2 sm:px-3">
+                            <Eye size={13} className="mr-1" /> Abrir
+                          </Button>
+                        </Link>
+                        <Button size="sm" variant="outline" disabled={deletandoId === orc.id} onClick={() => setConfirmId(orc.id)} className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground h-8 px-2">
+                          <Trash2 size={13} />
                         </Button>
-                      </Link>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={deletandoId === orc.id}
-                        onClick={() => setConfirmId(orc.id)}
-                        className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -158,30 +126,24 @@ export default function Historico() {
         )}
       </main>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-3 max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir orçamento?</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir o orçamento{" "}
-              <strong>{orcamentoParaExcluir ? `Orçamento-${sanitizeFileName(getNomeCliente(orcamentoParaExcluir))}-${orcamentoParaExcluir.data}` : ""}</strong>
-              ? Esta ação não pode ser desfeita.
+              <strong>{orcamentoParaExcluir ? `Orçamento-${sanitizeFileName(getNomeCliente(orcamentoParaExcluir))}-${orcamentoParaExcluir.data}` : ""}</strong>?
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleExcluir}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleExcluir} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <footer className="mt-12 bg-[hsl(var(--brand-black))] text-gray-400 text-xs text-center py-4">
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
         LM Manutenções © {new Date().getFullYear()} — Sistema de Orçamentos
       </footer>
     </div>
