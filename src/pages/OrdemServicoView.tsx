@@ -1,22 +1,22 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, FileDown } from "lucide-react";
+import { ArrowLeft, AlertTriangle, FileDown, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import { toast } from "@/hooks/use-toast";
 import {
   buscarOrdemServico, buscarDiagnostico, buscarConclusao,
-  listarMidias, atualizarStatusOS,
+  listarMidias, salvarDiagnostico, salvarConclusao,
   OrdemServico, Diagnostico, Conclusao, MidiaOS,
-  STATUS_LABELS, STATUS_COLORS,
 } from "@/hooks/useOrdensServico";
 import PageHeader from "@/components/PageHeader";
-import OSRetiradaDiagnosticoPDF from "@/components/OSRetiradaDiagnosticoPDF";
+import OSRetiradaPDF from "@/components/OSRetiradaPDF";
+import OSDiagnosticoPDF from "@/components/OSDiagnosticoPDF";
 import OSConclusaoPDF from "@/components/OSConclusaoPDF";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -30,12 +30,35 @@ export default function OrdemServicoView() {
   const [conclusao, setConclusao] = useState<Conclusao | null>(null);
   const [midias, setMidias] = useState<MidiaOS[]>([]);
   const [loading, setLoading] = useState(true);
-  const [novoStatus, setNovoStatus] = useState("");
+
+  // PDF refs
+  const retiradaPdfRef = useRef<HTMLDivElement>(null);
+  const diagnosticoPdfRef = useRef<HTMLDivElement>(null);
+  const conclusaoPdfRef = useRef<HTMLDivElement>(null);
   const [gerandoRetirada, setGerandoRetirada] = useState(false);
+  const [gerandoDiagnostico, setGerandoDiagnostico] = useState(false);
   const [gerandoConclusao, setGerandoConclusao] = useState(false);
 
-  const retiradaPdfRef = useRef<HTMLDivElement>(null);
-  const conclusaoPdfRef = useRef<HTMLDivElement>(null);
+  // Diagnóstico form
+  const [tecnico, setTecnico] = useState("");
+  const [dataTeste, setDataTeste] = useState("");
+  const [problemaIdentificado, setProblemaIdentificado] = useState("");
+  const [pecasDanificadas, setPecasDanificadas] = useState("");
+  const [causaProvavel, setCausaProvavel] = useState("");
+  const [testesRealizados, setTestesRealizados] = useState("");
+  const [resultadoFinal, setResultadoFinal] = useState("");
+  const [obsDiagnostico, setObsDiagnostico] = useState("");
+
+  // Conclusão form
+  const [servicosExecutados, setServicosExecutados] = useState("");
+  const [pecasSubstituidas, setPecasSubstituidas] = useState("");
+  const [valorFinal, setValorFinal] = useState(0);
+  const [dataConclusao, setDataConclusao] = useState("");
+  const [dataEntrega, setDataEntrega] = useState("");
+  const [garantiaMeses, setGarantiaMeses] = useState(0);
+  const [obsFinais, setObsFinais] = useState("");
+
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -43,56 +66,68 @@ export default function OrdemServicoView() {
       buscarOrdemServico(id), buscarDiagnostico(id), buscarConclusao(id), listarMidias(id),
     ]).then(([osData, diagData, concData, midiasData]) => {
       setOs(osData); setDiagnostico(diagData); setConclusao(concData); setMidias(midiasData);
-      if (osData) setNovoStatus(osData.status);
       setLoading(false);
     });
   }, [id]);
-
-  const handleStatusChange = async (status: string) => {
-    if (!id) return;
-    setNovoStatus(status);
-    const ok = await atualizarStatusOS(id, status);
-    if (ok) {
-      setOs((prev) => prev ? { ...prev, status } : prev);
-      toast({ title: "Status atualizado", description: `Status alterado para "${STATUS_LABELS[status]}"` });
-    } else {
-      toast({ title: "Erro", description: "Não foi possível atualizar.", variant: "destructive" });
-    }
-  };
 
   const getNome = (o: OrdemServico) =>
     (o.tipo_pessoa === "fisica" ? o.cliente_nome_pessoa : o.cliente_nome) || "Cliente";
 
   const sanitize = (s: string) => s.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
 
-  const gerarPDFRetirada = async () => {
-    if (!retiradaPdfRef.current || !os) return;
-    setGerandoRetirada(true);
+  const gerarPDF = async (ref: React.RefObject<HTMLDivElement | null>, nome_arquivo: string, setGerando: (v: boolean) => void) => {
+    if (!ref.current || !os) return;
+    setGerando(true);
     await new Promise((r) => setTimeout(r, 300));
     try {
-      const canvas = await html2canvas(retiradaPdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
       const w = pdf.internal.pageSize.getWidth();
       const h = (canvas.height * w) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, w, h);
-      pdf.save(`Relatorio_Retirada_Diagnostico_${sanitize(getNome(os))}_${os.numero}.pdf`);
-    } finally { setGerandoRetirada(false); }
+      pdf.save(`${nome_arquivo}_${sanitize(getNome(os))}_${os.numero}.pdf`);
+    } finally { setGerando(false); }
   };
 
-  const gerarPDFConclusao = async () => {
-    if (!conclusaoPdfRef.current || !os || !conclusao) return;
-    setGerandoConclusao(true);
-    await new Promise((r) => setTimeout(r, 300));
+  const handleSalvarDiagnostico = async () => {
+    if (!id) return;
+    setSalvando(true);
     try {
-      const canvas = await html2canvas(conclusaoPdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
-      const w = pdf.internal.pageSize.getWidth();
-      const h = (canvas.height * w) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, w, h);
-      pdf.save(`Relatorio_Conclusao_${sanitize(getNome(os))}_${os.numero}.pdf`);
-    } finally { setGerandoConclusao(false); }
+      const diagId = await salvarDiagnostico({
+        os_id: id, tecnico_responsavel: tecnico, data_teste: dataTeste,
+        problema_identificado: problemaIdentificado, pecas_danificadas: pecasDanificadas,
+        causa_provavel: causaProvavel, testes_realizados: testesRealizados,
+        resultado_final: resultadoFinal, observacoes: obsDiagnostico,
+      });
+      if (diagId) {
+        const diag = await buscarDiagnostico(id);
+        setDiagnostico(diag);
+        toast({ title: "Diagnóstico salvo!" });
+      } else {
+        toast({ title: "Erro", description: "Não foi possível salvar.", variant: "destructive" });
+      }
+    } finally { setSalvando(false); }
+  };
+
+  const handleSalvarConclusao = async () => {
+    if (!id) return;
+    setSalvando(true);
+    try {
+      const concId = await salvarConclusao({
+        os_id: id, servicos_executados: servicosExecutados,
+        pecas_substituidas: pecasSubstituidas, valor_final: valorFinal,
+        data_conclusao: dataConclusao, data_entrega: dataEntrega,
+        garantia_meses: garantiaMeses, observacoes_finais: obsFinais,
+      });
+      if (concId) {
+        const conc = await buscarConclusao(id);
+        setConclusao(conc);
+        toast({ title: "Conclusão salva!" });
+      } else {
+        toast({ title: "Erro", variant: "destructive" });
+      }
+    } finally { setSalvando(false); }
   };
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Carregando...</span></div>;
@@ -140,33 +175,25 @@ export default function OrdemServicoView() {
           <h1 className="text-lg sm:text-2xl font-bold text-foreground">
             {os.numero} <span className="text-primary">— {getNome(os)}</span>
           </h1>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-            <span className={`text-[10px] sm:text-xs px-2 py-1 rounded-full border font-semibold ${STATUS_COLORS[os.status] || ""}`}>
-              {STATUS_LABELS[os.status] || os.status}
-            </span>
-            <Select value={novoStatus} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs"><SelectValue placeholder="Alterar status" /></SelectTrigger>
-              <SelectContent>
-                {Object.entries(STATUS_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           {/* PDF Buttons */}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={gerarPDFRetirada} disabled={gerandoRetirada} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs">
-              <FileDown size={13} className="mr-1" /> {gerandoRetirada ? "Gerando..." : "PDF Retirada + Diagnóstico"}
+            <Button size="sm" onClick={() => gerarPDF(retiradaPdfRef, "Relatorio_Retirada", setGerandoRetirada)} disabled={gerandoRetirada} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs">
+              <FileDown size={13} className="mr-1" /> {gerandoRetirada ? "Gerando..." : "PDF Retirada"}
             </Button>
+            {diagnostico && (
+              <Button size="sm" onClick={() => gerarPDF(diagnosticoPdfRef, "Relatorio_Diagnostico", setGerandoDiagnostico)} disabled={gerandoDiagnostico} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs">
+                <FileDown size={13} className="mr-1" /> {gerandoDiagnostico ? "Gerando..." : "PDF Diagnóstico"}
+              </Button>
+            )}
             {conclusao && (
-              <Button size="sm" onClick={gerarPDFConclusao} disabled={gerandoConclusao} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs">
-                <FileDown size={13} className="mr-1" /> {gerandoConclusao ? "Gerando..." : "PDF Conclusão (Cliente)"}
+              <Button size="sm" onClick={() => gerarPDF(conclusaoPdfRef, "Relatorio_Conclusao", setGerandoConclusao)} disabled={gerandoConclusao} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs">
+                <FileDown size={13} className="mr-1" /> {gerandoConclusao ? "Gerando..." : "PDF Conclusão"}
               </Button>
             )}
           </div>
         </div>
 
-        {os.data_limite_abandono && new Date(os.data_limite_abandono) < new Date() && os.status !== "abandonado" && os.status !== "entregue" && (
+        {os.data_limite_abandono && new Date(os.data_limite_abandono) < new Date() && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 flex items-center gap-2">
             <AlertTriangle className="text-destructive shrink-0" size={18} />
             <div>
@@ -177,6 +204,7 @@ export default function OrdemServicoView() {
         )}
 
         <Accordion type="multiple" defaultValue={["retirada", "diagnostico", "conclusao"]} className="space-y-3">
+          {/* RETIRADA */}
           <AccordionItem value="retirada" className="bg-card rounded-lg border border-border">
             <AccordionTrigger className="px-4 sm:px-6 py-3 hover:no-underline">
               <span className="font-bold text-primary text-sm">📄 Relatório de Retirada</span>
@@ -211,6 +239,7 @@ export default function OrdemServicoView() {
             </AccordionContent>
           </AccordionItem>
 
+          {/* DIAGNÓSTICO */}
           <AccordionItem value="diagnostico" className="bg-card rounded-lg border border-border">
             <AccordionTrigger className="px-4 sm:px-6 py-3 hover:no-underline">
               <span className="font-bold text-primary text-sm">🔍 Diagnóstico / Teste</span>
@@ -229,11 +258,55 @@ export default function OrdemServicoView() {
                   <GaleriaMidias items={midiasDiagnostico} />
                 </>
               ) : (
-                <p className="text-xs text-muted-foreground">Diagnóstico ainda não registrado.</p>
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground mb-2">Diagnóstico ainda não registrado. Preencha abaixo:</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Técnico Responsável</Label>
+                        <Input placeholder="Nome do técnico" value={tecnico} maxLength={40} onChange={(e) => setTecnico(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data do Teste</Label>
+                        <Input type="date" value={dataTeste} onChange={(e) => setDataTeste(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Problema Identificado</Label>
+                      <Textarea placeholder="Descreva o problema..." value={problemaIdentificado} maxLength={500} onChange={(e) => setProblemaIdentificado(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Peças Danificadas</Label>
+                        <Textarea placeholder="Liste as peças..." value={pecasDanificadas} maxLength={500} onChange={(e) => setPecasDanificadas(e.target.value)} rows={2} className="resize-none text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Causa Provável</Label>
+                        <Textarea placeholder="Causa provável..." value={causaProvavel} maxLength={500} onChange={(e) => setCausaProvavel(e.target.value)} rows={2} className="resize-none text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Testes Realizados</Label>
+                      <Textarea placeholder="Descreva os testes..." value={testesRealizados} maxLength={500} onChange={(e) => setTestesRealizados(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Resultado Final</Label>
+                      <Textarea placeholder="Resultado dos testes..." value={resultadoFinal} maxLength={500} onChange={(e) => setResultadoFinal(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Observações</Label>
+                      <Textarea placeholder="Observações adicionais..." value={obsDiagnostico} maxLength={500} onChange={(e) => setObsDiagnostico(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                  </div>
+                  <Button onClick={handleSalvarDiagnostico} disabled={salvando} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm">
+                    <Save size={15} className="mr-2" /> {salvando ? "Salvando..." : "Salvar Diagnóstico"}
+                  </Button>
+                </div>
               )}
             </AccordionContent>
           </AccordionItem>
 
+          {/* CONCLUSÃO */}
           <AccordionItem value="conclusao" className="bg-card rounded-lg border border-border">
             <AccordionTrigger className="px-4 sm:px-6 py-3 hover:no-underline">
               <span className="font-bold text-primary text-sm">✅ Conclusão / Entrega</span>
@@ -251,7 +324,46 @@ export default function OrdemServicoView() {
                   <GaleriaMidias items={midiasConclusao} />
                 </>
               ) : (
-                <p className="text-xs text-muted-foreground">Conclusão ainda não registrada.</p>
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground mb-2">Conclusão ainda não registrada. Preencha abaixo:</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Serviços Executados</Label>
+                      <Textarea placeholder="Descreva os serviços..." value={servicosExecutados} maxLength={500} onChange={(e) => setServicosExecutados(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Peças Substituídas</Label>
+                      <Textarea placeholder="Liste as peças..." value={pecasSubstituidas} maxLength={500} onChange={(e) => setPecasSubstituidas(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Valor Final (R$)</Label>
+                        <Input type="number" min={0} step={0.01} placeholder="0,00" value={valorFinal === 0 ? "" : valorFinal} onChange={(e) => setValorFinal(parseFloat(e.target.value) || 0)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Garantia (meses)</Label>
+                        <Input type="number" min={0} placeholder="0" value={garantiaMeses === 0 ? "" : garantiaMeses} onChange={(e) => setGarantiaMeses(parseInt(e.target.value) || 0)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data Conclusão</Label>
+                        <Input type="date" value={dataConclusao} onChange={(e) => setDataConclusao(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data Entrega</Label>
+                        <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Observações Finais</Label>
+                      <Textarea placeholder="Observações..." value={obsFinais} maxLength={500} onChange={(e) => setObsFinais(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                  </div>
+                  <Button onClick={handleSalvarConclusao} disabled={salvando} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm">
+                    <Save size={15} className="mr-2" /> {salvando ? "Finalizando..." : "Salvar Conclusão"}
+                  </Button>
+                </div>
               )}
             </AccordionContent>
           </AccordionItem>
@@ -260,7 +372,8 @@ export default function OrdemServicoView() {
 
       {/* Hidden PDF renders */}
       <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none", opacity: 0 }}>
-        <OSRetiradaDiagnosticoPDF ref={retiradaPdfRef} os={os} diagnostico={diagnostico} midias={midias} />
+        <OSRetiradaPDF ref={retiradaPdfRef} os={os} midias={midias} />
+        {diagnostico && <OSDiagnosticoPDF ref={diagnosticoPdfRef} os={os} diagnostico={diagnostico} midias={midias} />}
         {conclusao && <OSConclusaoPDF ref={conclusaoPdfRef} os={os} conclusao={conclusao} midias={midias} />}
       </div>
 
