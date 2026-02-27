@@ -14,6 +14,103 @@ export type Database = {
   }
   public: {
     Tables: {
+      conclusoes: {
+        Row: {
+          created_at: string
+          data_conclusao: string
+          data_entrega: string
+          garantia_meses: number
+          id: string
+          observacoes_finais: string
+          os_id: string
+          pecas_substituidas: string
+          servicos_executados: string
+          valor_final: number
+        }
+        Insert: {
+          created_at?: string
+          data_conclusao?: string
+          data_entrega?: string
+          garantia_meses?: number
+          id?: string
+          observacoes_finais?: string
+          os_id: string
+          pecas_substituidas?: string
+          servicos_executados?: string
+          valor_final?: number
+        }
+        Update: {
+          created_at?: string
+          data_conclusao?: string
+          data_entrega?: string
+          garantia_meses?: number
+          id?: string
+          observacoes_finais?: string
+          os_id?: string
+          pecas_substituidas?: string
+          servicos_executados?: string
+          valor_final?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conclusoes_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnosticos: {
+        Row: {
+          causa_provavel: string
+          created_at: string
+          data_teste: string
+          id: string
+          observacoes: string
+          os_id: string
+          pecas_danificadas: string
+          problema_identificado: string
+          resultado_final: string
+          tecnico_responsavel: string
+          testes_realizados: string
+        }
+        Insert: {
+          causa_provavel?: string
+          created_at?: string
+          data_teste?: string
+          id?: string
+          observacoes?: string
+          os_id: string
+          pecas_danificadas?: string
+          problema_identificado?: string
+          resultado_final?: string
+          tecnico_responsavel?: string
+          testes_realizados?: string
+        }
+        Update: {
+          causa_provavel?: string
+          created_at?: string
+          data_teste?: string
+          id?: string
+          observacoes?: string
+          os_id?: string
+          pecas_danificadas?: string
+          problema_identificado?: string
+          resultado_final?: string
+          tecnico_responsavel?: string
+          testes_realizados?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnosticos_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itens_orcamento: {
         Row: {
           descricao: string
@@ -45,6 +142,44 @@ export type Database = {
             columns: ["orcamento_id"]
             isOneToOne: false
             referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      midias_os: {
+        Row: {
+          created_at: string
+          descricao: string
+          etapa: string
+          id: string
+          os_id: string
+          tipo: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string
+          etapa?: string
+          id?: string
+          os_id: string
+          tipo?: string
+          url?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          etapa?: string
+          id?: string
+          os_id?: string
+          tipo?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "midias_os_os_id_fkey"
+            columns: ["os_id"]
+            isOneToOne: false
+            referencedRelation: "ordens_servico"
             referencedColumns: ["id"]
           },
         ]
@@ -105,6 +240,116 @@ export type Database = {
           total?: number
         }
         Relationships: []
+      }
+      ordens_servico: {
+        Row: {
+          acessorios_entregues: string
+          clausula_permanencia: string
+          cliente_cnpj: string
+          cliente_cpf: string
+          cliente_email: string
+          cliente_endereco: string
+          cliente_nome: string
+          cliente_nome_pessoa: string
+          cliente_telefone: string
+          created_at: string
+          data_limite_abandono: string | null
+          data_retirada: string
+          defeito_relatado: string
+          estado_geral: string
+          hora_retirada: string
+          horimetro: string
+          id: string
+          local_coleta: string
+          marca: string
+          modelo: string
+          numero: string
+          numero_serie: string
+          orcamento_id: string | null
+          placa_veiculo: string
+          potencia: string
+          responsavel_retirada: string
+          status: string
+          tensao: string
+          tipo_maquina: string
+          tipo_pessoa: string
+          updated_at: string
+        }
+        Insert: {
+          acessorios_entregues?: string
+          clausula_permanencia?: string
+          cliente_cnpj?: string
+          cliente_cpf?: string
+          cliente_email?: string
+          cliente_endereco?: string
+          cliente_nome?: string
+          cliente_nome_pessoa?: string
+          cliente_telefone?: string
+          created_at?: string
+          data_limite_abandono?: string | null
+          data_retirada?: string
+          defeito_relatado?: string
+          estado_geral?: string
+          hora_retirada?: string
+          horimetro?: string
+          id?: string
+          local_coleta?: string
+          marca?: string
+          modelo?: string
+          numero?: string
+          numero_serie?: string
+          orcamento_id?: string | null
+          placa_veiculo?: string
+          potencia?: string
+          responsavel_retirada?: string
+          status?: string
+          tensao?: string
+          tipo_maquina?: string
+          tipo_pessoa?: string
+          updated_at?: string
+        }
+        Update: {
+          acessorios_entregues?: string
+          clausula_permanencia?: string
+          cliente_cnpj?: string
+          cliente_cpf?: string
+          cliente_email?: string
+          cliente_endereco?: string
+          cliente_nome?: string
+          cliente_nome_pessoa?: string
+          cliente_telefone?: string
+          created_at?: string
+          data_limite_abandono?: string | null
+          data_retirada?: string
+          defeito_relatado?: string
+          estado_geral?: string
+          hora_retirada?: string
+          horimetro?: string
+          id?: string
+          local_coleta?: string
+          marca?: string
+          modelo?: string
+          numero?: string
+          numero_serie?: string
+          orcamento_id?: string | null
+          placa_veiculo?: string
+          potencia?: string
+          responsavel_retirada?: string
+          status?: string
+          tensao?: string
+          tipo_maquina?: string
+          tipo_pessoa?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordens_servico_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
