@@ -277,27 +277,13 @@ export default function OrdemServicoNova() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Nº Série</Label>
-                        <Input placeholder="Nº de série" value={numeroSerie} maxLength={40} onChange={(e) => setNumeroSerie(e.target.value)} className="h-9 text-sm" />
-                      </div>
-                      <div className="space-y-1">
                         <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Horímetro</Label>
                         <Input placeholder="Horas" value={horimetro} maxLength={20} onChange={(e) => setHorimetro(e.target.value)} className="h-9 text-sm" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Potência</Label>
-                        <Input placeholder="kVA / HP" value={potencia} maxLength={20} onChange={(e) => setPotencia(e.target.value)} className="h-9 text-sm" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Tensão</Label>
                         <Input placeholder="220V / 380V" value={tensao} maxLength={20} onChange={(e) => setTensao(e.target.value)} className="h-9 text-sm" />
                       </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Estado Geral Visual</Label>
-                      <Input placeholder="Bom / Regular / Ruim" value={estadoGeral} maxLength={40} onChange={(e) => setEstadoGeral(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Acessórios Entregues</Label>
@@ -310,29 +296,17 @@ export default function OrdemServicoNova() {
                 <div>
                   <SectionTitle>Dados da Retirada</SectionTitle>
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data</Label>
-                        <Input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} className="h-9 text-sm" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Hora</Label>
-                        <Input type="time" value={horaRetirada} onChange={(e) => setHoraRetirada(e.target.value)} className="h-9 text-sm" />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data</Label>
+                      <Input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Local da Coleta ({localColeta.length}/80)</Label>
                       <Input placeholder="Endereço de coleta" value={localColeta} maxLength={80} onChange={(e) => setLocalColeta(e.target.value)} className="h-9 text-sm" />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Responsável</Label>
-                        <Input placeholder="Nome" value={responsavel} maxLength={40} onChange={(e) => setResponsavel(e.target.value)} className="h-9 text-sm" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Placa</Label>
-                        <Input placeholder="ABC-1234" value={placaVeiculo} maxLength={10} onChange={(e) => setPlacaVeiculo(e.target.value.toUpperCase())} className="h-9 text-sm" />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Responsável</Label>
+                      <Input placeholder="Nome" value={responsavel} maxLength={40} onChange={(e) => setResponsavel(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Defeito Relatado</Label>

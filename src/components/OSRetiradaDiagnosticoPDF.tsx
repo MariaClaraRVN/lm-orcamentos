@@ -67,19 +67,14 @@ const OSRetiradaDiagnosticoPDF = React.forwardRef<HTMLDivElement, Props>(
         <Row label="Tipo" value={os.tipo_maquina === "gerador" ? "Gerador" : "Compressor"} />
         <Row label="Marca" value={os.marca} />
         <Row label="Modelo" value={os.modelo} />
-        <Row label="Nº Série" value={os.numero_serie} />
         <Row label="Horímetro" value={os.horimetro} />
-        <Row label="Potência" value={os.potencia} />
         <Row label="Tensão" value={os.tensao} />
-        <Row label="Estado Geral" value={os.estado_geral} />
         <Row label="Acessórios" value={os.acessorios_entregues} />
 
         <div style={{ fontWeight: 700, fontSize: "11px", color: "#16a34a", marginTop: "12px", marginBottom: "4px", textTransform: "uppercase" }}>Dados da Retirada</div>
         <Row label="Data" value={os.data_retirada} />
-        <Row label="Hora" value={os.hora_retirada} />
         <Row label="Local" value={os.local_coleta} />
         <Row label="Responsável" value={os.responsavel_retirada} />
-        <Row label="Placa Veículo" value={os.placa_veiculo} />
         <Row label="Defeito Relatado" value={os.defeito_relatado} />
 
         {midiasRetirada.length > 0 && (
