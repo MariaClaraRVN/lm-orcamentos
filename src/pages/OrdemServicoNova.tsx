@@ -191,7 +191,6 @@ export default function OrdemServicoNova() {
               </div>
             </div>
 
-            {/* Máquina */}
             <div>
               <SectionTitle>Dados da Máquina</SectionTitle>
               <div className="grid grid-cols-1 gap-3">
@@ -210,16 +209,6 @@ export default function OrdemServicoNova() {
                   <div className="space-y-1">
                     <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Modelo</Label>
                     <Input placeholder="Ex: 320D" value={modelo} maxLength={40} onChange={(e) => setModelo(e.target.value)} className="h-9 text-sm" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Horímetro</Label>
-                    <Input placeholder="Horas" value={horimetro} maxLength={20} onChange={(e) => setHorimetro(e.target.value)} className="h-9 text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Tensão</Label>
-                    <Input placeholder="220V / 380V" value={tensao} maxLength={20} onChange={(e) => setTensao(e.target.value)} className="h-9 text-sm" />
                   </div>
                 </div>
                 <div className="space-y-1">
