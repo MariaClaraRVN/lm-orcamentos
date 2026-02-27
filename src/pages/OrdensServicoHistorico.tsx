@@ -9,14 +9,12 @@ import {
 import { toast } from "@/hooks/use-toast";
 import {
   listarOrdensServico, excluirOrdemServico, OrdemServico,
-  STATUS_LABELS, STATUS_COLORS,
 } from "@/hooks/useOrdensServico";
 import PageHeader from "@/components/PageHeader";
 
 export default function OrdensServicoHistorico() {
   const [lista, setLista] = useState<OrdemServico[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filtroStatus, setFiltroStatus] = useState<string>("todos");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [deletandoId, setDeletandoId] = useState<string | null>(null);
 
@@ -41,13 +39,11 @@ export default function OrdensServicoHistorico() {
   const getNome = (os: OrdemServico) =>
     (os.tipo_pessoa === "fisica" ? os.cliente_nome_pessoa : os.cliente_nome) || "Cliente";
 
-  const filtradas = filtroStatus === "todos" ? lista : lista.filter((o) => o.status === filtroStatus);
-
   const isProximoAbandono = (os: OrdemServico) => {
-    if (!os.data_limite_abandono || os.status === "entregue" || os.status === "abandonado") return false;
+    if (!os.data_limite_abandono) return false;
     const limite = new Date(os.data_limite_abandono);
     const diff = (limite.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
-    return diff <= 15;
+    return diff <= 15 && diff > 0;
   };
 
   const isAbandonado = (os: OrdemServico) => {
@@ -69,10 +65,9 @@ export default function OrdensServicoHistorico() {
           </Link>
         </div>
 
-
         {loading ? (
           <div className="text-center py-16 text-muted-foreground">Carregando...</div>
-        ) : filtradas.length === 0 ? (
+        ) : lista.length === 0 ? (
           <div className="bg-card rounded-lg shadow-sm border border-border p-8 sm:p-12 text-center">
             <Wrench size={40} className="mx-auto mb-4 text-muted-foreground opacity-50" />
             <p className="text-muted-foreground text-base sm:text-lg">Nenhuma OS encontrada.</p>
@@ -84,24 +79,21 @@ export default function OrdensServicoHistorico() {
           <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
             <div className="bg-primary px-4 sm:px-6 py-3">
               <h2 className="text-primary-foreground font-bold text-sm sm:text-base">
-                {filtradas.length} OS encontrada{filtradas.length !== 1 ? "s" : ""}
+                {lista.length} OS encontrada{lista.length !== 1 ? "s" : ""}
               </h2>
             </div>
             <div className="divide-y divide-border">
-              {filtradas.map((os, idx) => (
-                <div key={os.id} className={`p-3 sm:p-4 ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"} ${isProximoAbandono(os) ? "border-l-4 border-l-destructive" : ""}`}>
+              {lista.map((os, idx) => (
+                <div key={os.id} className={`p-3 sm:p-4 ${idx % 2 === 0 ? "bg-card" : "bg-[hsl(var(--table-row-alt))]"} ${isProximoAbandono(os) || isAbandonado(os) ? "border-l-4 border-l-destructive" : ""}`}>
                   <div className="flex flex-col gap-2">
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <ClipboardList size={14} className="text-primary shrink-0" />
                         <span className="font-bold text-foreground text-sm">{os.numero}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full border ${STATUS_COLORS[os.status] || "bg-muted text-muted-foreground"}`}>
-                          {STATUS_LABELS[os.status] || os.status}
-                        </span>
-                        {isProximoAbandono(os) && !isAbandonado(os) && (
+                        {isProximoAbandono(os) && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/30">⚠ Prazo</span>
                         )}
-                        {isAbandonado(os) && os.status !== "abandonado" && (
+                        {isAbandonado(os) && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground">⏰ Expirado</span>
                         )}
                       </div>
