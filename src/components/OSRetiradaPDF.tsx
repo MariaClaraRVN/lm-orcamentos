@@ -61,8 +61,6 @@ const OSRetiradaPDF = React.forwardRef<HTMLDivElement, Props>(
         <Row label="Tipo" value={os.tipo_maquina === "gerador" ? "Gerador" : "Compressor"} />
         <Row label="Marca" value={os.marca} />
         <Row label="Modelo" value={os.modelo} />
-        <Row label="Horímetro" value={os.horimetro} />
-        <Row label="Tensão" value={os.tensao} />
         <Row label="Acessórios" value={os.acessorios_entregues} />
 
         <SectionTitle>🚚 DADOS DA RETIRADA</SectionTitle>

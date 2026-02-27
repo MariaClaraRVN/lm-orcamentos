@@ -227,6 +227,28 @@ export async function buscarDiagnostico(osId: string): Promise<Diagnostico | nul
   return data as Diagnostico | null;
 }
 
+export async function atualizarDiagnostico(id: string, dados: Partial<Diagnostico>): Promise<boolean> {
+  const { error } = await supabase
+    .from("diagnosticos")
+    .update({
+      tecnico_responsavel: dados.tecnico_responsavel,
+      data_teste: dados.data_teste,
+      problema_identificado: dados.problema_identificado,
+      pecas_danificadas: dados.pecas_danificadas,
+      causa_provavel: dados.causa_provavel,
+      testes_realizados: dados.testes_realizados,
+      resultado_final: dados.resultado_final,
+      observacoes: dados.observacoes,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao atualizar diagnóstico:", error);
+    return false;
+  }
+  return true;
+}
+
 // ---- Conclusão ----
 
 export async function salvarConclusao(dados: Partial<Conclusao>): Promise<string | null> {
@@ -263,6 +285,27 @@ export async function buscarConclusao(osId: string): Promise<Conclusao | null> {
 
   if (error) return null;
   return data as Conclusao | null;
+}
+
+export async function atualizarConclusao(id: string, dados: Partial<Conclusao>): Promise<boolean> {
+  const { error } = await supabase
+    .from("conclusoes")
+    .update({
+      servicos_executados: dados.servicos_executados,
+      pecas_substituidas: dados.pecas_substituidas,
+      valor_final: dados.valor_final,
+      data_conclusao: dados.data_conclusao,
+      data_entrega: dados.data_entrega,
+      garantia_meses: dados.garantia_meses,
+      observacoes_finais: dados.observacoes_finais,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao atualizar conclusão:", error);
+    return false;
+  }
+  return true;
 }
 
 // ---- Mídias ----
