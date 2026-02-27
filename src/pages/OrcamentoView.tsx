@@ -91,7 +91,7 @@ export default function OrcamentoView() {
 
   const reabrirNoFormulario = () => {
     if (!orcamento) return;
-    navigate("/", {
+    navigate("/orcamento/novo", {
       state: {
         orcamentoParaEditar: {
           clienteNome: orcamento.cliente_nome,
