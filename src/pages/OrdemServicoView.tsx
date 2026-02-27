@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -16,6 +16,10 @@ import {
   STATUS_LABELS, STATUS_COLORS,
 } from "@/hooks/useOrdensServico";
 import PageHeader from "@/components/PageHeader";
+import OSRetiradaDiagnosticoPDF from "@/components/OSRetiradaDiagnosticoPDF";
+import OSConclusaoPDF from "@/components/OSConclusaoPDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const formatMoeda = (v: number) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -27,6 +31,11 @@ export default function OrdemServicoView() {
   const [midias, setMidias] = useState<MidiaOS[]>([]);
   const [loading, setLoading] = useState(true);
   const [novoStatus, setNovoStatus] = useState("");
+  const [gerandoRetirada, setGerandoRetirada] = useState(false);
+  const [gerandoConclusao, setGerandoConclusao] = useState(false);
+
+  const retiradaPdfRef = useRef<HTMLDivElement>(null);
+  const conclusaoPdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -53,6 +62,38 @@ export default function OrdemServicoView() {
 
   const getNome = (o: OrdemServico) =>
     (o.tipo_pessoa === "fisica" ? o.cliente_nome_pessoa : o.cliente_nome) || "Cliente";
+
+  const sanitize = (s: string) => s.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
+
+  const gerarPDFRetirada = async () => {
+    if (!retiradaPdfRef.current || !os) return;
+    setGerandoRetirada(true);
+    await new Promise((r) => setTimeout(r, 300));
+    try {
+      const canvas = await html2canvas(retiradaPdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+      const w = pdf.internal.pageSize.getWidth();
+      const h = (canvas.height * w) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, w, h);
+      pdf.save(`Relatorio_Retirada_Diagnostico_${sanitize(getNome(os))}_${os.numero}.pdf`);
+    } finally { setGerandoRetirada(false); }
+  };
+
+  const gerarPDFConclusao = async () => {
+    if (!conclusaoPdfRef.current || !os || !conclusao) return;
+    setGerandoConclusao(true);
+    await new Promise((r) => setTimeout(r, 300));
+    try {
+      const canvas = await html2canvas(conclusaoPdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+      const w = pdf.internal.pageSize.getWidth();
+      const h = (canvas.height * w) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, w, h);
+      pdf.save(`Relatorio_Conclusao_${sanitize(getNome(os))}_${os.numero}.pdf`);
+    } finally { setGerandoConclusao(false); }
+  };
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-muted-foreground">Carregando...</span></div>;
   if (!os) return (
@@ -111,6 +152,17 @@ export default function OrdemServicoView() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          {/* PDF Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={gerarPDFRetirada} disabled={gerandoRetirada} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs">
+              <FileDown size={13} className="mr-1" /> {gerandoRetirada ? "Gerando..." : "PDF Retirada + Diagnóstico"}
+            </Button>
+            {conclusao && (
+              <Button size="sm" onClick={gerarPDFConclusao} disabled={gerandoConclusao} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-xs">
+                <FileDown size={13} className="mr-1" /> {gerandoConclusao ? "Gerando..." : "PDF Conclusão (Cliente)"}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -210,6 +262,12 @@ export default function OrdemServicoView() {
           </AccordionItem>
         </Accordion>
       </main>
+
+      {/* Hidden PDF renders */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none", opacity: 0 }}>
+        <OSRetiradaDiagnosticoPDF ref={retiradaPdfRef} os={os} diagnostico={diagnostico} midias={midias} />
+        {conclusao && <OSConclusaoPDF ref={conclusaoPdfRef} os={os} conclusao={conclusao} midias={midias} />}
+      </div>
 
       <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
         LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
