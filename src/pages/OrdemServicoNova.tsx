@@ -92,6 +92,19 @@ export default function OrdemServicoNova() {
   const [salvando, setSalvando] = useState(false);
 
   const handleSalvarOS = async () => {
+    const nome = tipoPessoa === "juridica" ? clienteNome.trim() : clienteNomePessoa.trim();
+    if (!nome) {
+      toast({ title: "Campo obrigatório", description: tipoPessoa === "juridica" ? "Preencha o nome da empresa." : "Preencha o nome do cliente.", variant: "destructive" });
+      return;
+    }
+    if (!marca.trim() || !modelo.trim()) {
+      toast({ title: "Campo obrigatório", description: "Preencha a marca e o modelo da máquina.", variant: "destructive" });
+      return;
+    }
+    if (!defeitoRelatado.trim()) {
+      toast({ title: "Campo obrigatório", description: "Descreva o defeito relatado.", variant: "destructive" });
+      return;
+    }
     setSalvando(true);
     try {
       const id = await criarOrdemServico({
