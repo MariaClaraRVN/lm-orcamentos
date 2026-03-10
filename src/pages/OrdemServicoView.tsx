@@ -427,7 +427,57 @@ export default function OrdemServicoView() {
             </AccordionTrigger>
             <AccordionContent className="px-4 sm:px-6 pb-4 space-y-2">
               {showDiagForm ? (
-                <DiagForm />
+                <div className="space-y-4">
+                  {!diagnostico && <p className="text-xs text-muted-foreground mb-2">Diagnóstico ainda não registrado. Preencha abaixo:</p>}
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Técnico Responsável</Label>
+                        <Input placeholder="Nome do técnico" value={tecnico} maxLength={40} onChange={(e) => setTecnico(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data do Teste</Label>
+                        <Input type="date" value={dataTeste} onChange={(e) => setDataTeste(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Problema Identificado</Label>
+                      <Textarea placeholder="Descreva o problema..." value={problemaIdentificado} maxLength={500} onChange={(e) => setProblemaIdentificado(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Peças Danificadas</Label>
+                        <Textarea placeholder="Liste as peças..." value={pecasDanificadas} maxLength={500} onChange={(e) => setPecasDanificadas(e.target.value)} rows={2} className="resize-none text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Causa Provável</Label>
+                        <Textarea placeholder="Causa provável..." value={causaProvavel} maxLength={500} onChange={(e) => setCausaProvavel(e.target.value)} rows={2} className="resize-none text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Testes Realizados</Label>
+                      <Textarea placeholder="Descreva os testes..." value={testesRealizados} maxLength={500} onChange={(e) => setTestesRealizados(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Resultado Final</Label>
+                      <Textarea placeholder="Resultado dos testes..." value={resultadoFinal} maxLength={500} onChange={(e) => setResultadoFinal(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Observações</Label>
+                      <Textarea placeholder="Observações adicionais..." value={obsDiagnostico} maxLength={500} onChange={(e) => setObsDiagnostico(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSalvarDiagnostico} disabled={salvando} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm">
+                      <Save size={15} className="mr-2" /> {salvando ? "Salvando..." : editingDiag ? "Atualizar Diagnóstico" : "Salvar Diagnóstico"}
+                    </Button>
+                    {editingDiag && (
+                      <Button variant="outline" onClick={() => setEditingDiag(false)} className="text-sm">
+                        <X size={15} className="mr-1" /> Cancelar
+                      </Button>
+                    )}
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className="flex justify-end">
