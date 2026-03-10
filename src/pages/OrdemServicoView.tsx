@@ -507,7 +507,53 @@ export default function OrdemServicoView() {
             </AccordionTrigger>
             <AccordionContent className="px-4 sm:px-6 pb-4 space-y-2">
               {showConcForm ? (
-                <ConcForm />
+                <div className="space-y-4">
+                  {!conclusao && <p className="text-xs text-muted-foreground mb-2">Conclusão ainda não registrada. Preencha abaixo:</p>}
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Serviços Executados</Label>
+                      <Textarea placeholder="Descreva os serviços..." value={servicosExecutados} maxLength={500} onChange={(e) => setServicosExecutados(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Peças Substituídas</Label>
+                      <Textarea placeholder="Liste as peças..." value={pecasSubstituidas} maxLength={500} onChange={(e) => setPecasSubstituidas(e.target.value)} rows={2} className="resize-none text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Valor Final (R$)</Label>
+                        <Input type="number" min={0} step={0.01} placeholder="0,00" value={valorFinal === 0 ? "" : valorFinal} onChange={(e) => setValorFinal(parseFloat(e.target.value) || 0)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Garantia (meses)</Label>
+                        <Input type="number" min={0} placeholder="0" value={garantiaMeses === 0 ? "" : garantiaMeses} onChange={(e) => setGarantiaMeses(parseInt(e.target.value) || 0)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data Conclusão</Label>
+                        <Input type="date" value={dataConclusao} onChange={(e) => setDataConclusao(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data Entrega</Label>
+                        <Input type="date" value={dataEntrega} onChange={(e) => setDataEntrega(e.target.value)} className="h-9 text-sm" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Observações Finais</Label>
+                      <Textarea placeholder="Observações..." value={obsFinais} maxLength={500} onChange={(e) => setObsFinais(e.target.value)} rows={3} className="resize-none text-sm" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSalvarConclusao} disabled={salvando} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm">
+                      <Save size={15} className="mr-2" /> {salvando ? "Finalizando..." : editingConc ? "Atualizar Conclusão" : "Salvar Conclusão"}
+                    </Button>
+                    {editingConc && (
+                      <Button variant="outline" onClick={() => setEditingConc(false)} className="text-sm">
+                        <X size={15} className="mr-1" /> Cancelar
+                      </Button>
+                    )}
+                  </div>
+                </div>
               ) : (
                 <>
                   <div className="flex justify-end">
