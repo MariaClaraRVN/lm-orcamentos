@@ -61,6 +61,54 @@ export type Database = {
           },
         ]
       }
+      contratos: {
+        Row: {
+          cidade: string
+          contratada_cnpj: string
+          contratada_endereco: string
+          contratada_razao_social: string
+          contratante_cnpj: string
+          contratante_endereco: string
+          contratante_razao_social: string
+          created_at: string
+          data_contrato: string
+          equipamento_descricao: string
+          id: string
+          valor_mensal: string
+          valor_visita_emergencia: string
+        }
+        Insert: {
+          cidade?: string
+          contratada_cnpj?: string
+          contratada_endereco?: string
+          contratada_razao_social?: string
+          contratante_cnpj?: string
+          contratante_endereco?: string
+          contratante_razao_social?: string
+          created_at?: string
+          data_contrato?: string
+          equipamento_descricao?: string
+          id?: string
+          valor_mensal?: string
+          valor_visita_emergencia?: string
+        }
+        Update: {
+          cidade?: string
+          contratada_cnpj?: string
+          contratada_endereco?: string
+          contratada_razao_social?: string
+          contratante_cnpj?: string
+          contratante_endereco?: string
+          contratante_razao_social?: string
+          created_at?: string
+          data_contrato?: string
+          equipamento_descricao?: string
+          id?: string
+          valor_mensal?: string
+          valor_visita_emergencia?: string
+        }
+        Relationships: []
+      }
       diagnosticos: {
         Row: {
           causa_provavel: string
