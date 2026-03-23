@@ -10,6 +10,7 @@ import OrcamentoView from "./pages/OrcamentoView";
 import OrdemServicoNova from "./pages/OrdemServicoNova";
 import OrdensServicoHistorico from "./pages/OrdensServicoHistorico";
 import OrdemServicoView from "./pages/OrdemServicoView";
+import ContratoNovo from "./pages/ContratoNovo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
