@@ -79,6 +79,15 @@ export default function Index() {
                   <span className="font-bold text-sm">Criar Ordem de Serviço</span>
                   <span className="text-[10px] sm:text-xs opacity-70">Retirada, diagnóstico e execução</span>
                 </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 sm:h-20 flex flex-col gap-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => { setDialogOpen(false); navigate("/contrato/novo"); }}
+                >
+                  <ScrollText size={22} />
+                  <span className="font-bold text-sm">Criar Contrato</span>
+                  <span className="text-[10px] sm:text-xs opacity-70">Manutenção preventiva de gerador</span>
+                </Button>
               </div>
             </DialogContent>
           </Dialog>

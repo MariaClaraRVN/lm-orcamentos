@@ -97,7 +97,7 @@ export default function ContratoNovo() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader title="Novo Contrato de Manutenção" />
+      <PageHeader titulo="Novo Contrato de Manutenção" />
 
       <main className="max-w-3xl mx-auto px-3 py-6 space-y-6">
         <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="mb-2">
