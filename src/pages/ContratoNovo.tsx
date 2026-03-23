@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { salvarContrato } from "@/hooks/useContratos";
 import PageHeader from "@/components/PageHeader";
 import ContratoPDF from "@/components/ContratoPDF";
-import { ArrowLeft, FileDown } from "lucide-react";
+import { ArrowLeft, FileDown, Save } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "@/hooks/use-toast";
@@ -51,6 +50,7 @@ export default function ContratoNovo() {
   const pdfRef = useRef<HTMLDivElement>(null);
   const [dados, setDados] = useState<DadosContrato>(initialData);
   const [gerando, setGerando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   const handleChange = (field: keyof DadosContrato, value: string) => {
     setDados(prev => ({ ...prev, [field]: value }));
@@ -193,10 +193,37 @@ export default function ContratoNovo() {
           </CardContent>
         </Card>
 
-        <Button onClick={gerarPDF} disabled={gerando} className="w-full py-6 text-base font-bold">
-          <FileDown size={20} className="mr-2" />
-          {gerando ? "Gerando PDF..." : "Gerar Contrato em PDF"}
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button onClick={async () => {
+            setSalvando(true);
+            try {
+              await salvarContrato({
+                contratada_razao_social: dados.contratadaRazaoSocial,
+                contratada_cnpj: dados.contratadaCnpj,
+                contratada_endereco: dados.contratadaEndereco,
+                contratante_razao_social: dados.contratanteRazaoSocial,
+                contratante_cnpj: dados.contratanteCnpj,
+                contratante_endereco: dados.contratanteEndereco,
+                equipamento_descricao: dados.equipamentoDescricao,
+                valor_visita_emergencia: dados.valorVisitaEmergencia,
+                valor_mensal: dados.valorMensal,
+                cidade: dados.cidade,
+                data_contrato: dados.dataContrato,
+              });
+              toast({ title: "Contrato salvo!" });
+              navigate("/contratos/historico");
+            } catch {
+              toast({ title: "Erro ao salvar", variant: "destructive" });
+            } finally { setSalvando(false); }
+          }} disabled={salvando} variant="outline" className="py-6 text-base font-bold">
+            <Save size={20} className="mr-2" />
+            {salvando ? "Salvando..." : "Salvar Contrato"}
+          </Button>
+          <Button onClick={gerarPDF} disabled={gerando} className="py-6 text-base font-bold">
+            <FileDown size={20} className="mr-2" />
+            {gerando ? "Gerando PDF..." : "Gerar PDF"}
+          </Button>
+        </div>
       </main>
 
       {/* PDF Hidden */}

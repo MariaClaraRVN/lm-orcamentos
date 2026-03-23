@@ -92,17 +92,23 @@ export default function Index() {
             </DialogContent>
           </Dialog>
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-3 gap-3 pt-2">
             <Link to="/historico">
               <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
                 <History size={18} className="mx-auto mb-2 text-primary" />
-                <span className="text-xs sm:text-sm font-medium text-foreground">Histórico de Orçamentos</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground">Orçamentos</span>
               </div>
             </Link>
             <Link to="/os/historico">
               <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
                 <ClipboardList size={18} className="mx-auto mb-2 text-primary" />
-                <span className="text-xs sm:text-sm font-medium text-foreground">Histórico de OS</span>
+                <span className="text-xs sm:text-sm font-medium text-foreground">Ordens de Serviço</span>
+              </div>
+            </Link>
+            <Link to="/contratos/historico">
+              <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
+                <ScrollText size={18} className="mx-auto mb-2 text-primary" />
+                <span className="text-xs sm:text-sm font-medium text-foreground">Contratos</span>
               </div>
             </Link>
           </div>
