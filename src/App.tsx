@@ -11,6 +11,8 @@ import OrdemServicoNova from "./pages/OrdemServicoNova";
 import OrdensServicoHistorico from "./pages/OrdensServicoHistorico";
 import OrdemServicoView from "./pages/OrdemServicoView";
 import ContratoNovo from "./pages/ContratoNovo";
+import ContratosHistorico from "./pages/ContratosHistorico";
+import ContratoView from "./pages/ContratoView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
