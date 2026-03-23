@@ -33,6 +33,8 @@ function App() {
           <Route path="/os/historico" element={<OrdensServicoHistorico />} />
           <Route path="/os/:id" element={<OrdemServicoView />} />
           <Route path="/contrato/novo" element={<ContratoNovo />} />
+          <Route path="/contratos/historico" element={<ContratosHistorico />} />
+          <Route path="/contrato/:id" element={<ContratoView />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

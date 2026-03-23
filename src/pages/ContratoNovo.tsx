@@ -194,10 +194,37 @@ export default function ContratoNovo() {
           </CardContent>
         </Card>
 
-        <Button onClick={gerarPDF} disabled={gerando} className="w-full py-6 text-base font-bold">
-          <FileDown size={20} className="mr-2" />
-          {gerando ? "Gerando PDF..." : "Gerar Contrato em PDF"}
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button onClick={async () => {
+            setSalvando(true);
+            try {
+              await salvarContrato({
+                contratada_razao_social: dados.contratadaRazaoSocial,
+                contratada_cnpj: dados.contratadaCnpj,
+                contratada_endereco: dados.contratadaEndereco,
+                contratante_razao_social: dados.contratanteRazaoSocial,
+                contratante_cnpj: dados.contratanteCnpj,
+                contratante_endereco: dados.contratanteEndereco,
+                equipamento_descricao: dados.equipamentoDescricao,
+                valor_visita_emergencia: dados.valorVisitaEmergencia,
+                valor_mensal: dados.valorMensal,
+                cidade: dados.cidade,
+                data_contrato: dados.dataContrato,
+              });
+              toast({ title: "Contrato salvo!" });
+              navigate("/contratos/historico");
+            } catch {
+              toast({ title: "Erro ao salvar", variant: "destructive" });
+            } finally { setSalvando(false); }
+          }} disabled={salvando} variant="outline" className="py-6 text-base font-bold">
+            <Save size={20} className="mr-2" />
+            {salvando ? "Salvando..." : "Salvar Contrato"}
+          </Button>
+          <Button onClick={gerarPDF} disabled={gerando} className="py-6 text-base font-bold">
+            <FileDown size={20} className="mr-2" />
+            {gerando ? "Gerando PDF..." : "Gerar PDF"}
+          </Button>
+        </div>
       </main>
 
       {/* PDF Hidden */}
