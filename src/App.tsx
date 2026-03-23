@@ -10,6 +10,7 @@ import OrcamentoView from "./pages/OrcamentoView";
 import OrdemServicoNova from "./pages/OrdemServicoNova";
 import OrdensServicoHistorico from "./pages/OrdensServicoHistorico";
 import OrdemServicoView from "./pages/OrdemServicoView";
+import ContratoNovo from "./pages/ContratoNovo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function App() {
           <Route path="/os/nova" element={<OrdemServicoNova />} />
           <Route path="/os/historico" element={<OrdensServicoHistorico />} />
           <Route path="/os/:id" element={<OrdemServicoView />} />
+          <Route path="/contrato/novo" element={<ContratoNovo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
