@@ -51,6 +51,7 @@ export default function ContratoNovo() {
   const pdfRef = useRef<HTMLDivElement>(null);
   const [dados, setDados] = useState<DadosContrato>(initialData);
   const [gerando, setGerando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
 
   const handleChange = (field: keyof DadosContrato, value: string) => {
     setDados(prev => ({ ...prev, [field]: value }));
