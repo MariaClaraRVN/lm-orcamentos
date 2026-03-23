@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { salvarContrato } from "@/hooks/useContratos";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
 import ContratoPDF from "@/components/ContratoPDF";
 import { ArrowLeft, FileDown, Save } from "lucide-react";
