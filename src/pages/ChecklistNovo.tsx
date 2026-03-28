@@ -11,12 +11,13 @@ import { toast } from "@/hooks/use-toast";
 import { criarChecklist } from "@/hooks/useChecklists";
 import { listarContratos, ContratoSalvo } from "@/hooks/useContratos";
 
+const TECNICO_FIXO = "Lincoln Carlos Vianna";
+
 export default function ChecklistNovo() {
   const navigate = useNavigate();
   const [contratos, setContratos] = useState<ContratoSalvo[]>([]);
   const [contratoId, setContratoId] = useState("");
   const [clienteNome, setClienteNome] = useState("");
-  const [tecnico, setTecnico] = useState("");
   const [dataExecucao, setDataExecucao] = useState(new Date().toLocaleDateString("pt-BR"));
   const [salvando, setSalvando] = useState(false);
 
@@ -32,14 +33,13 @@ export default function ChecklistNovo() {
 
   const salvar = async () => {
     if (!clienteNome.trim()) return toast({ title: "Informe o nome do cliente", variant: "destructive" });
-    if (!tecnico.trim()) return toast({ title: "Informe o técnico responsável", variant: "destructive" });
     setSalvando(true);
     try {
       const id = await criarChecklist({
         contrato_id: contratoId || undefined,
         cliente_nome: clienteNome,
         data_execucao: dataExecucao,
-        tecnico,
+        tecnico: TECNICO_FIXO,
       });
       if (id) {
         toast({ title: "Checklist criado!" });
@@ -93,7 +93,7 @@ export default function ChecklistNovo() {
             </div>
             <div>
               <Label>Técnico Responsável</Label>
-              <Input value={tecnico} onChange={e => setTecnico(e.target.value)} placeholder="Nome do técnico" />
+              <Input value={TECNICO_FIXO} disabled className="bg-muted" />
             </div>
             <div>
               <Label>Data de Execução</Label>

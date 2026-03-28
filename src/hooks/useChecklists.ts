@@ -1,11 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export type ChecklistItemStatus = "sim" | "nao" | "nao_contem" | "pendente";
+
 export interface ChecklistItem {
   id: string;
   checklist_id: string;
   descricao: string;
   categoria: string;
-  feito: boolean;
+  status: ChecklistItemStatus;
 }
 
 export interface ChecklistSalvo {
@@ -20,7 +22,6 @@ export interface ChecklistSalvo {
   itens?: ChecklistItem[];
 }
 
-// Itens padrão baseados no contrato de manutenção preventiva
 export const CHECKLIST_ITENS_PADRAO: { categoria: string; descricao: string }[] = [
   { categoria: "I. Alimentação de Combustível", descricao: "Avaliação dos tanques e nível de combustível" },
   { categoria: "I. Alimentação de Combustível", descricao: "Verificação de vazamentos e obstruções" },
@@ -67,12 +68,11 @@ export async function criarChecklist(dados: {
     return null;
   }
 
-  // Insert default items
   const itensPayload = CHECKLIST_ITENS_PADRAO.map((item) => ({
     checklist_id: checklist.id,
     descricao: item.descricao,
     categoria: item.categoria,
-    feito: false,
+    status: "pendente",
   }));
 
   const { error: itensErr } = await supabase.from("checklist_itens").insert(itensPayload);
@@ -107,10 +107,10 @@ export async function buscarChecklist(id: string): Promise<ChecklistSalvo | null
   return { ...(data as ChecklistSalvo), itens: (itens ?? []) as ChecklistItem[] };
 }
 
-export async function atualizarItemChecklist(itemId: string, feito: boolean) {
+export async function atualizarItemChecklist(itemId: string, status: ChecklistItemStatus) {
   const { error } = await supabase
     .from("checklist_itens")
-    .update({ feito })
+    .update({ status })
     .eq("id", itemId);
   if (error) throw error;
 }
