@@ -54,6 +54,11 @@ const ChecklistPDF = React.forwardRef<HTMLDivElement, ChecklistPDFProps>(
             <div><strong>Cliente:</strong> {checklist.cliente_nome}</div>
             <div><strong>Data:</strong> {checklist.data_execucao}</div>
           </div>
+          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginBottom: "4px" }}>
+            {checklist.cliente_cnpj && <div><strong>CNPJ:</strong> {checklist.cliente_cnpj}</div>}
+            {checklist.cliente_cpf && <div><strong>CPF:</strong> {checklist.cliente_cpf}</div>}
+            {checklist.cliente_email && <div><strong>Email:</strong> {checklist.cliente_email}</div>}
+          </div>
           {checklist.cliente_endereco && (
             <div style={{ marginBottom: "4px" }}><strong>Endereço:</strong> {checklist.cliente_endereco}</div>
           )}
