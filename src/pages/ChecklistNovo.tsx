@@ -117,7 +117,7 @@ export default function ChecklistNovo() {
               <SelectContent>
                 {contratos.map(c => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.contratante_razao_social} — {c.equipamento_descricao || "Sem equipamento"}
+                    {c.contratante_razao_social} {c.contratante_cnpj ? `(${c.contratante_cnpj})` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
