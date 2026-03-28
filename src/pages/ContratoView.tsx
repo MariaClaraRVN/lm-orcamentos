@@ -21,6 +21,8 @@ function toFormData(c: ContratoSalvo): DadosContrato {
     contratanteCpf: c.contratante_cpf || "",
     contratanteNomePessoa: "",
     contratanteEndereco: c.contratante_endereco,
+    contratanteCep: "",
+    contratanteNumero: "",
     equipamentoDescricao: c.equipamento_descricao,
     valorVisitaEmergencia: c.valor_visita_emergencia,
     valorMensal: c.valor_mensal,

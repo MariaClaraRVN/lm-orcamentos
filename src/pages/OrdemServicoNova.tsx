@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { validarCPF, validarCNPJ } from "@/lib/validators";
-import { Save, Camera, History } from "lucide-react";
+import { validarCPF, validarCNPJ, maskCEP } from "@/lib/validators";
+import { Save, Camera, History, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { criarOrdemServico, uploadMidia, MidiaOS } from "@/hooks/useOrdensServico";
 import PageHeader from "@/components/PageHeader";
+import { buscarCEP, buscarCNPJ } from "@/lib/apiUtils";
 
 const maskCNPJ = (v: string) => {
   const digits = v.replace(/\D/g, "").slice(0, 14);
@@ -39,32 +40,96 @@ export default function OrdemServicoNova() {
   const [clienteCnpj, setClienteCnpj] = useState("");
   const [clienteCpf, setClienteCpf] = useState("");
   const [clienteNomePessoa, setClienteNomePessoa] = useState("");
+  const [clienteCep, setClienteCep] = useState("");
+  const [clienteNumero, setClienteNumero] = useState("");
   const [clienteEndereco, setClienteEndereco] = useState("");
   const [clienteEmail, setClienteEmail] = useState("");
   const [clienteTelefone, setClienteTelefone] = useState("");
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false);
 
   // Máquina
   const [tipoMaquina, setTipoMaquina] = useState("gerador");
   const [marca, setMarca] = useState("");
   const [modelo, setModelo] = useState("");
-  const [numeroSerie, setNumeroSerie] = useState("");
-  const [horimetro, setHorimetro] = useState("");
-  const [potencia, setPotencia] = useState("");
-  const [tensao, setTensao] = useState("");
-  const [estadoGeral, setEstadoGeral] = useState("");
   const [acessorios, setAcessorios] = useState("");
 
   // Retirada
   const [dataRetirada, setDataRetirada] = useState("");
   const [horaRetirada, setHoraRetirada] = useState("");
   const [localColeta, setLocalColeta] = useState("");
+  const [localColetaCep, setLocalColetaCep] = useState("");
+  const [localColetaNumero, setLocalColetaNumero] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [placaVeiculo, setPlacaVeiculo] = useState("");
   const [defeitoRelatado, setDefeitoRelatado] = useState("");
+  const [buscandoCepLocal, setBuscandoCepLocal] = useState(false);
 
   const [midiasRetirada, setMidiasRetirada] = useState<MidiaOS[]>([]);
   const [uploading, setUploading] = useState(false);
   const [salvando, setSalvando] = useState(false);
+
+  const handleCepCliente = async (cep: string) => {
+    const masked = maskCEP(cep);
+    setClienteCep(masked);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setBuscandoCep(true);
+      const result = await buscarCEP(digits);
+      setBuscandoCep(false);
+      if (result) {
+        setClienteEndereco([result.logradouro, result.bairro, `${result.localidade} - ${result.uf}`].filter(Boolean).join(", "));
+        toast({ title: "Endereço encontrado!" });
+      } else {
+        toast({ title: "CEP não encontrado", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleCepLocal = async (cep: string) => {
+    const masked = maskCEP(cep);
+    setLocalColetaCep(masked);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setBuscandoCepLocal(true);
+      const result = await buscarCEP(digits);
+      setBuscandoCepLocal(false);
+      if (result) {
+        setLocalColeta([result.logradouro, result.bairro, `${result.localidade} - ${result.uf}`].filter(Boolean).join(", "));
+        toast({ title: "Endereço de coleta encontrado!" });
+      } else {
+        toast({ title: "CEP não encontrado", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleCnpjChange = async (value: string) => {
+    const masked = maskCNPJ(value);
+    setClienteCnpj(masked);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length === 14 && validarCNPJ(masked)) {
+      setBuscandoCnpj(true);
+      const result = await buscarCNPJ(digits);
+      setBuscandoCnpj(false);
+      if (result) {
+        setClienteNome(result.nome || clienteNome);
+        setClienteEndereco([result.logradouro, result.bairro, `${result.municipio} - ${result.uf}`].filter(Boolean).join(", "));
+        setClienteNumero(result.numero || "");
+        setClienteCep(maskCEP(result.cep || ""));
+        if (result.email) setClienteEmail(result.email);
+        if (result.telefone) setClienteTelefone(result.telefone);
+        toast({ title: "Dados do CNPJ encontrados!" });
+      }
+    }
+  };
+
+  const enderecoCompletoCliente = () => {
+    return clienteNumero ? `${clienteEndereco}, ${clienteNumero}` : clienteEndereco;
+  };
+
+  const enderecoCompletoLocal = () => {
+    return localColetaNumero ? `${localColeta}, ${localColetaNumero}` : localColeta;
+  };
 
   const handleSalvarOS = async () => {
     const nome = tipoPessoa === "juridica" ? clienteNome.trim() : clienteNomePessoa.trim();
@@ -93,12 +158,12 @@ export default function OrdemServicoNova() {
       const id = await criarOrdemServico({
         cliente_nome: clienteNome, cliente_cnpj: clienteCnpj, cliente_cpf: clienteCpf,
         cliente_nome_pessoa: clienteNomePessoa, cliente_email: clienteEmail,
-        cliente_telefone: clienteTelefone, cliente_endereco: clienteEndereco,
+        cliente_telefone: clienteTelefone, cliente_endereco: enderecoCompletoCliente(),
         tipo_pessoa: tipoPessoa, tipo_maquina: tipoMaquina,
-        marca, modelo, numero_serie: numeroSerie, horimetro, potencia, tensao,
-        estado_geral: estadoGeral, acessorios_entregues: acessorios,
+        marca, modelo, numero_serie: "", horimetro: "", potencia: "", tensao: "",
+        estado_geral: "", acessorios_entregues: acessorios,
         data_retirada: dataRetirada, hora_retirada: horaRetirada,
-        local_coleta: localColeta, responsavel_retirada: responsavel,
+        local_coleta: enderecoCompletoLocal(), responsavel_retirada: responsavel,
         placa_veiculo: placaVeiculo, defeito_relatado: defeitoRelatado,
         clausula_permanencia: CLAUSULA_PADRAO,
       });
@@ -163,12 +228,12 @@ export default function OrdemServicoNova() {
                 {tipoPessoa === "juridica" ? (
                   <>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Empresa ({clienteNome.length}/40)</Label>
-                      <Input placeholder="Nome da empresa" value={clienteNome} maxLength={40} onChange={(e) => setClienteNome(e.target.value)} className="h-9 text-sm" />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CNPJ {buscandoCnpj && <Loader2 size={10} className="inline animate-spin ml-1" />}</Label>
+                      <Input placeholder="00.000.000/0000-00" value={clienteCnpj} onChange={(e) => handleCnpjChange(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CNPJ</Label>
-                      <Input placeholder="00.000.000/0000-00" value={clienteCnpj} onChange={(e) => setClienteCnpj(maskCNPJ(e.target.value))} className="h-9 text-sm" />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Empresa ({clienteNome.length}/40)</Label>
+                      <Input placeholder="Nome da empresa" value={clienteNome} maxLength={40} onChange={(e) => setClienteNome(e.target.value)} className="h-9 text-sm" />
                     </div>
                   </>
                 ) : (
@@ -183,9 +248,19 @@ export default function OrdemServicoNova() {
                     </div>
                   </>
                 )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CEP {buscandoCep && <Loader2 size={10} className="inline animate-spin ml-1" />}</Label>
+                    <Input placeholder="00000-000" value={clienteCep} onChange={(e) => handleCepCliente(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Número</Label>
+                    <Input placeholder="Nº" value={clienteNumero} onChange={(e) => setClienteNumero(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Endereço ({clienteEndereco.length}/80)</Label>
-                  <Input placeholder="Rua, número, bairro, cidade" value={clienteEndereco} maxLength={80} onChange={(e) => setClienteEndereco(e.target.value)} className="h-9 text-sm" />
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Endereço</Label>
+                  <Input placeholder="Preenchido pelo CEP" value={clienteEndereco} onChange={(e) => setClienteEndereco(e.target.value)} className="h-9 text-sm" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -235,9 +310,19 @@ export default function OrdemServicoNova() {
                   <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Data</Label>
                   <Input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} className="h-9 text-sm" />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CEP do Local {buscandoCepLocal && <Loader2 size={10} className="inline animate-spin ml-1" />}</Label>
+                    <Input placeholder="00000-000" value={localColetaCep} onChange={(e) => handleCepLocal(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Número</Label>
+                    <Input placeholder="Nº" value={localColetaNumero} onChange={(e) => setLocalColetaNumero(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Local da Coleta ({localColeta.length}/80)</Label>
-                  <Input placeholder="Endereço de coleta" value={localColeta} maxLength={80} onChange={(e) => setLocalColeta(e.target.value)} className="h-9 text-sm" />
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Local da Coleta</Label>
+                  <Input placeholder="Preenchido pelo CEP" value={localColeta} maxLength={80} onChange={(e) => setLocalColeta(e.target.value)} className="h-9 text-sm" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Responsável</Label>

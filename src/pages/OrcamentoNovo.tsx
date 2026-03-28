@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Trash2, FileDown, Eye, History } from "lucide-react";
-import { validarCPF, validarCNPJ } from "@/lib/validators";
+import { Plus, Trash2, FileDown, Eye, History, Loader2 } from "lucide-react";
+import { validarCPF, validarCNPJ, maskCEP } from "@/lib/validators";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import PageHeader from "@/components/PageHeader";
+import { buscarCEP, buscarCNPJ } from "@/lib/apiUtils";
 
 const formatMoeda = (valor: number) =>
   valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -46,6 +47,8 @@ export default function OrcamentoNovo() {
   const [clienteCnpj, setClienteCnpj] = useState(orcamentoParaEditar?.clienteCnpj ?? "");
   const [clienteCpf, setClienteCpf] = useState(orcamentoParaEditar?.clienteCpf ?? "");
   const [clienteNomePessoa, setClienteNomePessoa] = useState(orcamentoParaEditar?.clienteNomePessoa ?? "");
+  const [clienteCep, setClienteCep] = useState("");
+  const [clienteNumero, setClienteNumero] = useState("");
   const [clienteEndereco, setClienteEndereco] = useState(orcamentoParaEditar?.clienteEndereco ?? "");
   const [clienteEmail, setClienteEmail] = useState(orcamentoParaEditar?.clienteEmail ?? "");
   const [clienteTelefone, setClienteTelefone] = useState(orcamentoParaEditar?.clienteTelefone ?? "");
@@ -59,6 +62,8 @@ export default function OrcamentoNovo() {
   const [gerando, setGerando] = useState(false);
   const [valorTotal, setValorTotal] = useState<number>(orcamentoParaEditar?.valorTotal ?? 0);
   const [salvando, setSalvando] = useState(false);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [buscandoCnpj, setBuscandoCnpj] = useState(false);
 
   useEffect(() => {
     if (orcamentoParaEditar) {
@@ -70,8 +75,10 @@ export default function OrcamentoNovo() {
   const pdfRef = useRef<HTMLDivElement>(null);
   const nomeExibicao = tipoPessoa === "fisica" ? clienteNomePessoa : clienteNome;
 
+  const enderecoCompleto = () => clienteNumero ? `${clienteEndereco}, ${clienteNumero}` : clienteEndereco;
+
   const dados: DadosOrcamento = {
-    numero: "", data: hoje(), clienteNome, clienteCnpj, clienteEndereco,
+    numero: "", data: hoje(), clienteNome, clienteCnpj, clienteEndereco: enderecoCompleto(),
     clienteCpf, clienteNomePessoa, clienteEmail, clienteTelefone,
     tipoPessoa, marcaMaquina, modeloMaquina, itens, observacoes, total: valorTotal,
   };
@@ -80,6 +87,43 @@ export default function OrcamentoNovo() {
   const removeItem = (id: string) => { if (itens.length > 1) setItens((p) => p.filter((i) => i.id !== id)); };
   const updateItem = (id: string, field: keyof ItemOrcamento, value: string | number) => {
     setItens((p) => p.map((i) => i.id === id ? { ...i, [field]: value } : i));
+  };
+
+  const handleCepChange = async (cep: string) => {
+    const masked = maskCEP(cep);
+    setClienteCep(masked);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length === 8) {
+      setBuscandoCep(true);
+      const result = await buscarCEP(digits);
+      setBuscandoCep(false);
+      if (result) {
+        setClienteEndereco([result.logradouro, result.bairro, `${result.localidade} - ${result.uf}`].filter(Boolean).join(", "));
+        toast({ title: "Endereço encontrado!" });
+      } else {
+        toast({ title: "CEP não encontrado", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleCnpjChange = async (value: string) => {
+    const masked = maskCNPJ(value);
+    setClienteCnpj(masked);
+    const digits = masked.replace(/\D/g, "");
+    if (digits.length === 14 && validarCNPJ(masked)) {
+      setBuscandoCnpj(true);
+      const result = await buscarCNPJ(digits);
+      setBuscandoCnpj(false);
+      if (result) {
+        setClienteNome(result.nome || clienteNome);
+        setClienteEndereco([result.logradouro, result.bairro, `${result.municipio} - ${result.uf}`].filter(Boolean).join(", "));
+        setClienteNumero(result.numero || "");
+        setClienteCep(maskCEP(result.cep || ""));
+        if (result.email) setClienteEmail(result.email);
+        if (result.telefone) setClienteTelefone(result.telefone);
+        toast({ title: "Dados do CNPJ encontrados!" });
+      }
+    }
   };
 
   const salvar = async () => {
@@ -158,12 +202,12 @@ export default function OrcamentoNovo() {
                 {tipoPessoa === "juridica" ? (
                   <>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Empresa ({clienteNome.length}/{LIMITS.nome})</Label>
-                      <Input placeholder="Nome da empresa" value={clienteNome} maxLength={LIMITS.nome} onChange={(e) => setClienteNome(e.target.value)} className="h-9 text-sm" />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CNPJ {buscandoCnpj && <Loader2 size={10} className="inline animate-spin ml-1" />}</Label>
+                      <Input placeholder="00.000.000/0000-00" value={clienteCnpj} onChange={(e) => handleCnpjChange(e.target.value)} className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CNPJ</Label>
-                      <Input placeholder="00.000.000/0000-00" value={clienteCnpj} onChange={(e) => setClienteCnpj(maskCNPJ(e.target.value))} className="h-9 text-sm" />
+                      <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Empresa ({clienteNome.length}/{LIMITS.nome})</Label>
+                      <Input placeholder="Nome da empresa" value={clienteNome} maxLength={LIMITS.nome} onChange={(e) => setClienteNome(e.target.value)} className="h-9 text-sm" />
                     </div>
                   </>
                 ) : (
@@ -178,9 +222,19 @@ export default function OrcamentoNovo() {
                     </div>
                   </>
                 )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">CEP {buscandoCep && <Loader2 size={10} className="inline animate-spin ml-1" />}</Label>
+                    <Input placeholder="00000-000" value={clienteCep} onChange={(e) => handleCepChange(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Número</Label>
+                    <Input placeholder="Nº" value={clienteNumero} onChange={(e) => setClienteNumero(e.target.value)} className="h-9 text-sm" />
+                  </div>
+                </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Endereço ({clienteEndereco.length}/{LIMITS.endereco})</Label>
-                  <Input placeholder="Rua, número, bairro, cidade" value={clienteEndereco} maxLength={LIMITS.endereco} onChange={(e) => setClienteEndereco(e.target.value)} className="h-9 text-sm" />
+                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Endereço</Label>
+                  <Input placeholder="Preenchido pelo CEP" value={clienteEndereco} maxLength={LIMITS.endereco} onChange={(e) => setClienteEndereco(e.target.value)} className="h-9 text-sm" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
