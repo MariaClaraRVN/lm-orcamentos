@@ -6,6 +6,16 @@ import { ArrowLeft, Plus, Trash2, ClipboardCheck, Search } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { listarChecklists, excluirChecklist, ChecklistSalvo } from "@/hooks/useChecklists";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ChecklistsHistorico() {
   const navigate = useNavigate();
@@ -13,6 +23,7 @@ export default function ChecklistsHistorico() {
   const [loading, setLoading] = useState(true);
   const [filtroCliente, setFiltroCliente] = useState("");
   const [filtroData, setFiltroData] = useState("");
+  const [excluirId, setExcluirId] = useState<string | null>(null);
 
   const carregar = () => {
     setLoading(true);
@@ -21,14 +32,16 @@ export default function ChecklistsHistorico() {
 
   useEffect(() => { carregar(); }, []);
 
-  const excluir = async (id: string) => {
-    if (!confirm("Excluir este checklist?")) return;
+  const confirmarExclusao = async () => {
+    if (!excluirId) return;
     try {
-      await excluirChecklist(id);
+      await excluirChecklist(excluirId);
       toast({ title: "Checklist excluído!" });
       carregar();
     } catch {
       toast({ title: "Erro ao excluir", variant: "destructive" });
+    } finally {
+      setExcluirId(null);
     }
   };
 
@@ -51,7 +64,6 @@ export default function ChecklistsHistorico() {
           </Button>
         </div>
 
-        {/* Filters */}
         <div className="flex gap-2">
           <div className="flex-1 relative">
             <Search size={14} className="absolute left-2.5 top-2.5 text-muted-foreground" />
@@ -88,7 +100,7 @@ export default function ChecklistsHistorico() {
                     {c.tecnico && `Técnico: ${c.tecnico} · `}{c.data_execucao}
                   </div>
                 </Link>
-                <Button variant="ghost" size="icon" onClick={() => excluir(c.id)} className="text-destructive hover:text-destructive shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => setExcluirId(c.id)} className="text-destructive hover:text-destructive shrink-0">
                   <Trash2 size={16} />
                 </Button>
               </div>
@@ -96,6 +108,23 @@ export default function ChecklistsHistorico() {
           </div>
         )}
       </main>
+
+      <AlertDialog open={!!excluirId} onOpenChange={(open) => !open && setExcluirId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir checklist</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este checklist? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarExclusao} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
