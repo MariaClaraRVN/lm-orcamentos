@@ -48,11 +48,23 @@ const ChecklistPDF = React.forwardRef<HTMLDivElement, ChecklistPDFProps>(
           </div>
         </div>
 
-        {/* Info */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px", fontSize: "12px", borderBottom: "2px solid #16a34a", paddingBottom: "10px" }}>
-          <div><strong>Cliente:</strong> {checklist.cliente_nome}</div>
-          <div><strong>Técnico:</strong> {checklist.tecnico}</div>
-          <div><strong>Data:</strong> {checklist.data_execucao}</div>
+        {/* Client & Machine Info */}
+        <div style={{ marginBottom: "16px", fontSize: "12px", borderBottom: "2px solid #16a34a", paddingBottom: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+            <div><strong>Cliente:</strong> {checklist.cliente_nome}</div>
+            <div><strong>Data:</strong> {checklist.data_execucao}</div>
+          </div>
+          {checklist.cliente_endereco && (
+            <div style={{ marginBottom: "4px" }}><strong>Endereço:</strong> {checklist.cliente_endereco}</div>
+          )}
+          {checklist.cliente_telefone && (
+            <div style={{ marginBottom: "4px" }}><strong>Telefone:</strong> {checklist.cliente_telefone}</div>
+          )}
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div><strong>Técnico:</strong> {checklist.tecnico}</div>
+            {checklist.marca_maquina && <div><strong>Marca:</strong> {checklist.marca_maquina}</div>}
+            {checklist.modelo_maquina && <div><strong>Modelo:</strong> {checklist.modelo_maquina}</div>}
+          </div>
         </div>
 
         {/* Categories & Items */}
@@ -64,12 +76,21 @@ const ChecklistPDF = React.forwardRef<HTMLDivElement, ChecklistPDFProps>(
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
               <tbody>
                 {itens.filter(i => i.categoria === cat).map((item, idx) => (
-                  <tr key={item.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f0fdf4" }}>
-                    <td style={{ padding: "5px 8px", borderBottom: "1px solid #e5e7eb" }}>{item.descricao}</td>
-                    <td style={{ padding: "5px 8px", borderBottom: "1px solid #e5e7eb", width: "90px", textAlign: "center", fontWeight: 600, color: statusColor(item.status) }}>
-                      {statusLabel(item.status)}
-                    </td>
-                  </tr>
+                  <React.Fragment key={item.id}>
+                    <tr style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f0fdf4" }}>
+                      <td style={{ padding: "5px 8px", borderBottom: item.observacao ? "none" : "1px solid #e5e7eb" }}>{item.descricao}</td>
+                      <td style={{ padding: "5px 8px", borderBottom: item.observacao ? "none" : "1px solid #e5e7eb", width: "90px", textAlign: "center", fontWeight: 600, color: statusColor(item.status) }}>
+                        {statusLabel(item.status)}
+                      </td>
+                    </tr>
+                    {item.observacao && (
+                      <tr style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#f0fdf4" }}>
+                        <td colSpan={2} style={{ padding: "0 8px 5px 24px", borderBottom: "1px solid #e5e7eb", fontSize: "11px", color: "#6b7280", fontStyle: "italic" }}>
+                          Obs: {item.observacao}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
