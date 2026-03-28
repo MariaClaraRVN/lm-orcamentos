@@ -51,3 +51,14 @@ export async function excluirContrato(id: string) {
   const { error } = await supabase.from("contratos").delete().eq("id", id);
   if (error) throw error;
 }
+
+export async function atualizarContrato(id: string, dados: Partial<Omit<ContratoSalvo, "id" | "created_at">>) {
+  const { data, error } = await supabase
+    .from("contratos")
+    .update(dados)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as ContratoSalvo;
+}
