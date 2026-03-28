@@ -43,10 +43,10 @@ export default function ContratosHistorico() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <PageHeader titulo="Histórico de Contratos" />
 
-      <main className="max-w-3xl mx-auto px-3 py-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-foreground">Contratos</h2>
           <Button size="sm" onClick={() => navigate("/contrato/novo")}>
@@ -126,6 +126,10 @@ export default function ContratosHistorico() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
+        LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
+      </footer>
     </div>
   );
 }

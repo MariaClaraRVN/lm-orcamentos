@@ -44,8 +44,9 @@ export default function ChecklistNovo() {
       setClienteCpf(c.contratante_cpf || "");
       setTipoPessoa(c.tipo_pessoa || "juridica");
       if (c.equipamento_descricao) {
-        setMarcaMaquina("");
-        setModeloMaquina(c.equipamento_descricao);
+        const parts = c.equipamento_descricao.split(" - ");
+        setMarcaMaquina(parts[0] || "");
+        setModeloMaquina(parts[1] || c.equipamento_descricao);
       }
 
       // Buscar dados completos do cliente na tabela clientes
@@ -98,9 +99,9 @@ export default function ChecklistNovo() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <PageHeader titulo="Novo Checklist de Manutenção" />
-      <main className="max-w-3xl mx-auto px-3 py-6 space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6 space-y-6">
         <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="mb-2">
           <ArrowLeft size={16} className="mr-1" /> Voltar
         </Button>
@@ -196,6 +197,10 @@ export default function ChecklistNovo() {
           {salvando ? "Criando..." : "Criar Checklist"}
         </Button>
       </main>
+
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
+        LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
+      </footer>
     </div>
   );
 }
