@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, History, FileText, Wrench, ClipboardList, ScrollText, ClipboardCheck } from "lucide-react";
+import { Plus, History, FileText, Wrench, ClipboardList, ScrollText, ClipboardCheck, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
 export default function Index() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -23,6 +25,9 @@ export default function Index() {
           </Link>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <span className="text-xs text-gray-400 hidden sm:block">Sistema de Gestão</span>
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-gray-400 hover:text-white hover:bg-transparent text-xs px-1">
+              <LogOut size={14} />
+            </Button>
             <Link to="/historico">
               <Button variant="outline" size="sm" className="border-[hsl(var(--brand-green-light))] text-[hsl(var(--brand-green-light))] hover:bg-[hsl(var(--brand-green-light))] hover:text-[hsl(var(--brand-black))] text-xs px-2 sm:px-3">
                 <History size={14} className="mr-1" />
