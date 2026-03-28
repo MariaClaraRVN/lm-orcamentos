@@ -1,0 +1,1 @@
+ALTER TABLE public.checklist_itens ADD COLUMN observacao text NOT NULL DEFAULT '';

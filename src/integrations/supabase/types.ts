@@ -20,6 +20,7 @@ export type Database = {
           checklist_id: string
           descricao: string
           id: string
+          observacao: string
           status: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           checklist_id: string
           descricao?: string
           id?: string
+          observacao?: string
           status?: string
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           checklist_id?: string
           descricao?: string
           id?: string
+          observacao?: string
           status?: string
         }
         Relationships: [
