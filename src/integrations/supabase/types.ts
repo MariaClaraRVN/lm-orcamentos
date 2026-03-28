@@ -19,22 +19,22 @@ export type Database = {
           categoria: string
           checklist_id: string
           descricao: string
-          feito: boolean
           id: string
+          status: string
         }
         Insert: {
           categoria?: string
           checklist_id: string
           descricao?: string
-          feito?: boolean
           id?: string
+          status?: string
         }
         Update: {
           categoria?: string
           checklist_id?: string
           descricao?: string
-          feito?: boolean
           id?: string
+          status?: string
         }
         Relationships: [
           {
