@@ -10,6 +10,7 @@ import { ArrowLeft, ClipboardCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { criarChecklist } from "@/hooks/useChecklists";
 import { listarContratos, ContratoSalvo } from "@/hooks/useContratos";
+import { supabase } from "@/integrations/supabase/client";
 
 const TECNICO_FIXO = "Lincoln Carlos Vianna";
 
@@ -20,6 +21,10 @@ export default function ChecklistNovo() {
   const [clienteNome, setClienteNome] = useState("");
   const [clienteEndereco, setClienteEndereco] = useState("");
   const [clienteTelefone, setClienteTelefone] = useState("");
+  const [clienteCnpj, setClienteCnpj] = useState("");
+  const [clienteCpf, setClienteCpf] = useState("");
+  const [clienteEmail, setClienteEmail] = useState("");
+  const [tipoPessoa, setTipoPessoa] = useState("juridica");
   const [marcaMaquina, setMarcaMaquina] = useState("");
   const [modeloMaquina, setModeloMaquina] = useState("");
   const [dataExecucao, setDataExecucao] = useState(new Date().toLocaleDateString("pt-BR"));
@@ -29,16 +34,34 @@ export default function ChecklistNovo() {
     listarContratos().then(setContratos).catch(() => {});
   }, []);
 
-  const handleContratoChange = (id: string) => {
+  const handleContratoChange = async (id: string) => {
     setContratoId(id);
     const c = contratos.find(ct => ct.id === id);
     if (c) {
       setClienteNome(c.contratante_razao_social);
       setClienteEndereco(c.contratante_endereco || "");
+      setClienteCnpj(c.contratante_cnpj || "");
+      setClienteCpf(c.contratante_cpf || "");
+      setTipoPessoa(c.tipo_pessoa || "juridica");
       if (c.equipamento_descricao) {
-        // Try to extract marca/modelo from equipamento_descricao
         setMarcaMaquina("");
         setModeloMaquina(c.equipamento_descricao);
+      }
+
+      // Buscar dados completos do cliente na tabela clientes
+      const doc = c.tipo_pessoa === "fisica" ? c.contratante_cpf : c.contratante_cnpj;
+      if (doc) {
+        const col = c.tipo_pessoa === "fisica" ? "cpf" : "cnpj";
+        const { data: cliente } = await supabase
+          .from("clientes")
+          .select("*")
+          .eq(col, doc)
+          .maybeSingle();
+        if (cliente) {
+          setClienteEmail(cliente.email || "");
+          setClienteTelefone(cliente.telefone || "");
+          if (cliente.endereco) setClienteEndereco(cliente.endereco);
+        }
       }
     }
   };
@@ -56,6 +79,10 @@ export default function ChecklistNovo() {
         modelo_maquina: modeloMaquina,
         cliente_endereco: clienteEndereco,
         cliente_telefone: clienteTelefone,
+        cliente_cnpj: clienteCnpj,
+        cliente_cpf: clienteCpf,
+        cliente_email: clienteEmail,
+        tipo_pessoa: tipoPessoa,
       });
       if (id) {
         toast({ title: "Checklist criado!" });
@@ -104,16 +131,30 @@ export default function ChecklistNovo() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <Label>Nome do Cliente</Label>
+              <Label>Nome / Razão Social</Label>
               <Input value={clienteNome} onChange={e => setClienteNome(e.target.value)} placeholder="Nome do cliente" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>CNPJ</Label>
+                <Input value={clienteCnpj} onChange={e => setClienteCnpj(e.target.value)} placeholder="00.000.000/0000-00" />
+              </div>
+              <div>
+                <Label>CPF</Label>
+                <Input value={clienteCpf} onChange={e => setClienteCpf(e.target.value)} placeholder="000.000.000-00" />
+              </div>
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" value={clienteEmail} onChange={e => setClienteEmail(e.target.value)} placeholder="email@exemplo.com" />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={clienteTelefone} onChange={e => setClienteTelefone(e.target.value)} placeholder="(00) 00000-0000" />
             </div>
             <div>
               <Label>Endereço</Label>
               <Input value={clienteEndereco} onChange={e => setClienteEndereco(e.target.value)} placeholder="Endereço do cliente" />
-            </div>
-            <div>
-              <Label>Telefone</Label>
-              <Input value={clienteTelefone} onChange={e => setClienteTelefone(e.target.value)} placeholder="Telefone do cliente" />
             </div>
           </CardContent>
         </Card>
