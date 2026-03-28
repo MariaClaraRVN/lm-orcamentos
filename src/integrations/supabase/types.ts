@@ -51,6 +51,9 @@ export type Database = {
       }
       checklists: {
         Row: {
+          cliente_cnpj: string
+          cliente_cpf: string
+          cliente_email: string
           cliente_endereco: string
           cliente_nome: string
           cliente_telefone: string
@@ -63,8 +66,12 @@ export type Database = {
           modelo_maquina: string
           observacoes: string
           tecnico: string
+          tipo_pessoa: string
         }
         Insert: {
+          cliente_cnpj?: string
+          cliente_cpf?: string
+          cliente_email?: string
           cliente_endereco?: string
           cliente_nome?: string
           cliente_telefone?: string
@@ -77,8 +84,12 @@ export type Database = {
           modelo_maquina?: string
           observacoes?: string
           tecnico?: string
+          tipo_pessoa?: string
         }
         Update: {
+          cliente_cnpj?: string
+          cliente_cpf?: string
+          cliente_email?: string
           cliente_endereco?: string
           cliente_nome?: string
           cliente_telefone?: string
@@ -91,6 +102,7 @@ export type Database = {
           modelo_maquina?: string
           observacoes?: string
           tecnico?: string
+          tipo_pessoa?: string
         }
         Relationships: [
           {

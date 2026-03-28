@@ -24,6 +24,10 @@ export interface ChecklistSalvo {
   modelo_maquina: string;
   cliente_endereco: string;
   cliente_telefone: string;
+  cliente_cnpj: string;
+  cliente_cpf: string;
+  cliente_email: string;
+  tipo_pessoa: string;
   itens?: ChecklistItem[];
 }
 
@@ -60,6 +64,10 @@ export async function criarChecklist(dados: {
   modelo_maquina?: string;
   cliente_endereco?: string;
   cliente_telefone?: string;
+  cliente_cnpj?: string;
+  cliente_cpf?: string;
+  cliente_email?: string;
+  tipo_pessoa?: string;
 }): Promise<string | null> {
   const { data: checklist, error } = await supabase
     .from("checklists")
@@ -72,6 +80,10 @@ export async function criarChecklist(dados: {
       modelo_maquina: dados.modelo_maquina || "",
       cliente_endereco: dados.cliente_endereco || "",
       cliente_telefone: dados.cliente_telefone || "",
+      cliente_cnpj: dados.cliente_cnpj || "",
+      cliente_cpf: dados.cliente_cpf || "",
+      cliente_email: dados.cliente_email || "",
+      tipo_pessoa: dados.tipo_pessoa || "juridica",
     } as any)
     .select("id")
     .single();
