@@ -44,8 +44,9 @@ export default function ChecklistNovo() {
       setClienteCpf(c.contratante_cpf || "");
       setTipoPessoa(c.tipo_pessoa || "juridica");
       if (c.equipamento_descricao) {
-        setMarcaMaquina("");
-        setModeloMaquina(c.equipamento_descricao);
+        const parts = c.equipamento_descricao.split(" - ");
+        setMarcaMaquina(parts[0] || "");
+        setModeloMaquina(parts[1] || c.equipamento_descricao);
       }
 
       // Buscar dados completos do cliente na tabela clientes
