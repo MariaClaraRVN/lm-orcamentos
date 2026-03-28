@@ -201,11 +201,22 @@ export default function ContratoView() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Equipamento e Valores</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label>Descrição do Equipamento</Label>
-                  <Input value={dados.equipamentoDescricao} onChange={e => handleChange("equipamentoDescricao", e.target.value)} />
+                  <Label>Marca</Label>
+                  <Input value={dados.equipamentoDescricao.split(" - ")[0] || ""} onChange={e => {
+                    const modelo = dados.equipamentoDescricao.split(" - ")[1] || "";
+                    handleChange("equipamentoDescricao", modelo ? `${e.target.value} - ${modelo}` : e.target.value);
+                  }} placeholder="Ex: Cummins" />
                 </div>
+                <div>
+                  <Label>Modelo</Label>
+                  <Input value={dados.equipamentoDescricao.split(" - ")[1] || ""} onChange={e => {
+                    const marca = dados.equipamentoDescricao.split(" - ")[0] || "";
+                    handleChange("equipamentoDescricao", `${marca} - ${e.target.value}`);
+                  }} placeholder="Ex: 150kVA" />
+                </div>
+              </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label>Valor Mensal</Label>
