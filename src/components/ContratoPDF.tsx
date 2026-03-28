@@ -71,7 +71,7 @@ const ContratoPDF = React.forwardRef<HTMLDivElement, ContratoPDFProps>(
 
           <div style={clausulaTitle}>CLÁUSULA PRIMEIRA – OBJETO</div>
           <p style={{ textAlign: "justify" }}>
-            1.1. O presente contrato tem por objeto a prestação de serviços de manutenção preventiva em grupo gerador da marca e modelo: <strong>{field(d.equipamentoDescricao, "MARCA / MODELO / ESPECIFICAÇÃO DO EQUIPAMENTO")}</strong>.
+            1.1. O presente contrato tem por objeto a prestação de serviços de manutenção preventiva em grupo gerador da marca <strong>{field(d.marcaMaquina, "MARCA")}</strong> e modelo <strong>{field(d.modeloMaquina, "MODELO")}</strong>.
           </p>
           <p style={{ textAlign: "justify" }}>
             1.2. O presente contrato é exclusivo para o equipamento acima identificado. Qualquer outro equipamento deverá ser objeto de contrato específico.

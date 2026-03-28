@@ -28,7 +28,8 @@ function toFormData(c: ContratoSalvo): DadosContrato {
     contratanteEndereco: c.contratante_endereco,
     contratanteCep: "",
     contratanteNumero: "",
-    equipamentoDescricao: c.equipamento_descricao,
+    marcaMaquina: c.equipamento_descricao.split(" - ")[0] || "",
+    modeloMaquina: c.equipamento_descricao.split(" - ")[1] || "",
     valorVisitaEmergencia: c.valor_visita_emergencia,
     valorMensal: c.valor_mensal,
     cidade: c.cidade,
@@ -86,7 +87,7 @@ export default function ContratoView() {
         contratante_cnpj: dados.contratanteCnpj,
         contratante_cpf: dados.contratanteCpf,
         contratante_endereco: endFull,
-        equipamento_descricao: dados.equipamentoDescricao,
+        equipamento_descricao: `${dados.marcaMaquina} - ${dados.modeloMaquina}`,
         valor_visita_emergencia: dados.valorVisitaEmergencia,
         valor_mensal: dados.valorMensal,
         cidade: dados.cidade,
@@ -205,17 +206,11 @@ export default function ContratoView() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label>Marca</Label>
-                  <Input value={dados.equipamentoDescricao.split(" - ")[0] || ""} onChange={e => {
-                    const modelo = dados.equipamentoDescricao.split(" - ")[1] || "";
-                    handleChange("equipamentoDescricao", modelo ? `${e.target.value} - ${modelo}` : e.target.value);
-                  }} placeholder="Ex: Cummins" />
+                  <Input value={dados.marcaMaquina} onChange={e => handleChange("marcaMaquina", e.target.value)} placeholder="Ex: Cummins" />
                 </div>
                 <div>
                   <Label>Modelo</Label>
-                  <Input value={dados.equipamentoDescricao.split(" - ")[1] || ""} onChange={e => {
-                    const marca = dados.equipamentoDescricao.split(" - ")[0] || "";
-                    handleChange("equipamentoDescricao", `${marca} - ${e.target.value}`);
-                  }} placeholder="Ex: 150kVA" />
+                  <Input value={dados.modeloMaquina} onChange={e => handleChange("modeloMaquina", e.target.value)} placeholder="Ex: 150kVA" />
                 </div>
               </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -255,7 +250,8 @@ export default function ContratoView() {
                 <div><span className="text-muted-foreground">Endereço:</span> {contrato.contratante_endereco}</div>
                 <div><span className="text-muted-foreground">Contratada:</span> <strong>{contrato.contratada_razao_social}</strong></div>
                 <div><span className="text-muted-foreground">CNPJ:</span> {contrato.contratada_cnpj}</div>
-                <div><span className="text-muted-foreground">Equipamento:</span> {contrato.equipamento_descricao}</div>
+                <div><span className="text-muted-foreground">Marca:</span> {contrato.equipamento_descricao.split(" - ")[0]}</div>
+                <div><span className="text-muted-foreground">Modelo:</span> {contrato.equipamento_descricao.split(" - ")[1]}</div>
                 <div><span className="text-muted-foreground">Valor Mensal:</span> {contrato.valor_mensal}</div>
                 <div><span className="text-muted-foreground">Cidade:</span> {contrato.cidade}</div>
                 <div><span className="text-muted-foreground">Data:</span> {contrato.data_contrato}</div>
