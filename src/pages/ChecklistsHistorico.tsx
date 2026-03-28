@@ -52,9 +52,9 @@ export default function ChecklistsHistorico() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <PageHeader titulo="Checklists de Manutenção" />
-      <main className="max-w-3xl mx-auto px-3 py-6 space-y-4">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6 space-y-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
             <ArrowLeft size={16} className="mr-1" /> Voltar
@@ -125,6 +125,10 @@ export default function ChecklistsHistorico() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
+        LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
+      </footer>
     </div>
   );
 }

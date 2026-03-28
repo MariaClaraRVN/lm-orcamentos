@@ -243,10 +243,10 @@ export default function ContratoNovo() {
   const dadosPDF: DadosContrato = { ...dados, contratanteEndereco: enderecoCompleto() };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <PageHeader titulo="Novo Contrato de Manutenção" />
 
-      <main className="max-w-3xl mx-auto px-3 py-6 space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 py-6 space-y-6">
         <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="mb-2">
           <ArrowLeft size={16} className="mr-1" /> Voltar
         </Button>
@@ -407,6 +407,10 @@ export default function ContratoNovo() {
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
         <ContratoPDF ref={pdfRef} dados={dadosPDF} />
       </div>
+
+      <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
+        LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
+      </footer>
     </div>
   );
 }
