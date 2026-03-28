@@ -12,11 +12,14 @@ import { toast } from "@/hooks/use-toast";
 
 function toFormData(c: ContratoSalvo): DadosContrato {
   return {
+    tipoPessoa: (c.tipo_pessoa as "juridica" | "fisica") || "juridica",
     contratadaRazaoSocial: c.contratada_razao_social,
     contratadaCnpj: c.contratada_cnpj,
     contratadaEndereco: c.contratada_endereco,
     contratanteRazaoSocial: c.contratante_razao_social,
     contratanteCnpj: c.contratante_cnpj,
+    contratanteCpf: c.contratante_cpf || "",
+    contratanteNomePessoa: "",
     contratanteEndereco: c.contratante_endereco,
     equipamentoDescricao: c.equipamento_descricao,
     valorVisitaEmergencia: c.valor_visita_emergencia,
@@ -50,7 +53,6 @@ export default function ContratoView() {
       el.style.display = "block";
       const pages = el.querySelectorAll("[data-page]");
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i] as HTMLElement;
         const canvas = await html2canvas(page, { scale: 2, useCORS: true, backgroundColor: "#ffffff", width: 794, windowWidth: 794 });
@@ -58,7 +60,6 @@ export default function ContratoView() {
         if (i > 0) pdf.addPage();
         pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
       }
-
       el.style.display = "none";
       pdf.save(`Contrato-${contrato.contratante_razao_social || "Contrato"}-${new Date().toISOString().slice(0, 10)}.pdf`);
       toast({ title: "PDF gerado!" });
@@ -73,6 +74,7 @@ export default function ContratoView() {
   if (!contrato) return <div className="min-h-screen bg-background"><PageHeader titulo="Contrato" /><p className="text-center py-10 text-muted-foreground">Contrato não encontrado.</p></div>;
 
   const dados = toFormData(contrato);
+  const isPF = contrato.tipo_pessoa === "fisica";
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,7 +88,7 @@ export default function ContratoView() {
           <h2 className="font-bold text-base">Contrato de Manutenção Preventiva</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div><span className="text-muted-foreground">Contratante:</span> <strong>{contrato.contratante_razao_social}</strong></div>
-            <div><span className="text-muted-foreground">CNPJ:</span> {contrato.contratante_cnpj}</div>
+            <div><span className="text-muted-foreground">{isPF ? "CPF:" : "CNPJ:"}</span> {isPF ? contrato.contratante_cpf : contrato.contratante_cnpj}</div>
             <div><span className="text-muted-foreground">Contratada:</span> <strong>{contrato.contratada_razao_social}</strong></div>
             <div><span className="text-muted-foreground">CNPJ:</span> {contrato.contratada_cnpj}</div>
             <div><span className="text-muted-foreground">Equipamento:</span> {contrato.equipamento_descricao}</div>
