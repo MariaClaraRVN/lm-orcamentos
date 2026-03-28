@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, History, FileText, Wrench, ClipboardList, ScrollText, ClipboardCheck, LogOut } from "lucide-react";
+import { Plus, History, FileText, Wrench, ClipboardList, ScrollText, ClipboardCheck, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +18,27 @@ import {
 export default function Index() {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [senhaDialogOpen, setSenhaDialogOpen] = useState(false);
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmSenha, setConfirmSenha] = useState("");
+  const [salvandoSenha, setSalvandoSenha] = useState(false);
   const { signOut } = useAuth();
+
+  const trocarSenha = async () => {
+    if (!novaSenha || novaSenha.length < 6) return toast({ title: "A senha deve ter pelo menos 6 caracteres", variant: "destructive" });
+    if (novaSenha !== confirmSenha) return toast({ title: "As senhas não coincidem", variant: "destructive" });
+    setSalvandoSenha(true);
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+    if (error) {
+      toast({ title: "Erro ao trocar senha", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Senha alterada com sucesso!" });
+      setSenhaDialogOpen(false);
+      setNovaSenha("");
+      setConfirmSenha("");
+    }
+    setSalvandoSenha(false);
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -25,7 +49,10 @@ export default function Index() {
           </Link>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <span className="text-xs text-gray-400 hidden sm:block">Sistema de Gestão</span>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-gray-400 hover:text-white hover:bg-transparent text-xs px-1">
+            <Button variant="ghost" size="sm" onClick={() => setSenhaDialogOpen(true)} className="text-gray-400 hover:text-white hover:bg-transparent text-xs px-1" title="Trocar senha">
+              <KeyRound size={14} />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-gray-400 hover:text-white hover:bg-transparent text-xs px-1" title="Sair">
               <LogOut size={14} />
             </Button>
             <Link to="/historico">
