@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, FileDown } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   buscarChecklist,
@@ -14,7 +14,11 @@ import {
   atualizarChecklist,
   ChecklistSalvo,
   ChecklistItem,
+  ChecklistItemStatus,
 } from "@/hooks/useChecklists";
+import ChecklistPDF from "@/components/ChecklistPDF";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export default function ChecklistView() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +28,8 @@ export default function ChecklistView() {
   const [observacoes, setObservacoes] = useState("");
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [gerando, setGerando] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -35,13 +41,13 @@ export default function ChecklistView() {
     }).catch(() => setLoading(false));
   }, [id]);
 
-  const toggleItem = async (item: ChecklistItem) => {
-    const newVal = !item.feito;
-    setItens(prev => prev.map(i => i.id === item.id ? { ...i, feito: newVal } : i));
+  const changeStatus = async (item: ChecklistItem, newStatus: ChecklistItemStatus) => {
+    const oldStatus = item.status;
+    setItens(prev => prev.map(i => i.id === item.id ? { ...i, status: newStatus } : i));
     try {
-      await atualizarItemChecklist(item.id, newVal);
+      await atualizarItemChecklist(item.id, newStatus);
     } catch {
-      setItens(prev => prev.map(i => i.id === item.id ? { ...i, feito: !newVal } : i));
+      setItens(prev => prev.map(i => i.id === item.id ? { ...i, status: oldStatus } : i));
       toast({ title: "Erro ao atualizar item", variant: "destructive" });
     }
   };
@@ -50,8 +56,8 @@ export default function ChecklistView() {
     if (!id) return;
     setSalvando(true);
     try {
-      const todosFeitos = itens.every(i => i.feito);
-      await atualizarChecklist(id, { observacoes, concluido: todosFeitos });
+      const todosRespondidos = itens.every(i => i.status !== "pendente");
+      await atualizarChecklist(id, { observacoes, concluido: todosRespondidos });
       toast({ title: "Checklist salvo!" });
     } catch {
       toast({ title: "Erro ao salvar", variant: "destructive" });
@@ -60,14 +66,59 @@ export default function ChecklistView() {
     }
   };
 
+  const gerarPDF = async () => {
+    if (!pdfRef.current || !checklist) return;
+    setGerando(true);
+    try {
+      const canvas = await html2canvas(pdfRef.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+      const ratio = canvas.width / canvas.height;
+      const imgW = pdfW;
+      const imgH = pdfW / ratio;
+
+      if (imgH <= pdfH) {
+        pdf.addImage(imgData, "PNG", 0, 0, imgW, imgH);
+      } else {
+        let y = 0;
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = canvas.width;
+        const pageHeightPx = (pdfH / pdfW) * canvas.width;
+        while (y < canvas.height) {
+          const h = Math.min(pageHeightPx, canvas.height - y);
+          pageCanvas.height = h;
+          const ctx = pageCanvas.getContext("2d")!;
+          ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+          const pageImg = pageCanvas.toDataURL("image/png");
+          if (y > 0) pdf.addPage();
+          pdf.addImage(pageImg, "PNG", 0, 0, pdfW, (h / canvas.width) * pdfW);
+          y += pageHeightPx;
+        }
+      }
+      pdf.save(`Checklist-${checklist.cliente_nome}-${checklist.data_execucao.replace(/\//g, "-")}.pdf`);
+    } catch {
+      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+    } finally {
+      setGerando(false);
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-background"><PageHeader titulo="Checklist" /><p className="text-center py-10 text-muted-foreground">Carregando...</p></div>;
   if (!checklist) return <div className="min-h-screen bg-background"><PageHeader titulo="Checklist" /><p className="text-center py-10 text-muted-foreground">Checklist não encontrado.</p></div>;
 
-  // Group items by category
   const categorias = Array.from(new Set(itens.map(i => i.categoria)));
-  const feitos = itens.filter(i => i.feito).length;
+  const respondidos = itens.filter(i => i.status !== "pendente").length;
   const total = itens.length;
-  const progresso = total > 0 ? Math.round((feitos / total) * 100) : 0;
+  const progresso = total > 0 ? Math.round((respondidos / total) * 100) : 0;
+
+  const statusLabel = (s: ChecklistItemStatus) => {
+    if (s === "sim") return "Sim";
+    if (s === "nao") return "Não";
+    if (s === "nao_contem") return "Não contém";
+    return "Pendente";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,7 +136,7 @@ export default function ChecklistView() {
           </div>
           <div className="mt-3">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span>Progresso: {feitos}/{total}</span>
+              <span>Progresso: {respondidos}/{total}</span>
               <span className={progresso === 100 ? "text-primary font-bold" : "text-muted-foreground"}>{progresso}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2.5">
@@ -99,18 +150,29 @@ export default function ChecklistView() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-primary">{cat}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {itens.filter(i => i.categoria === cat).map(item => (
-                <label key={item.id} className="flex items-start gap-3 cursor-pointer p-2 rounded hover:bg-accent/10 transition-colors">
-                  <Checkbox
-                    checked={item.feito}
-                    onCheckedChange={() => toggleItem(item)}
-                    className="mt-0.5"
-                  />
-                  <span className={`text-sm ${item.feito ? "line-through text-muted-foreground" : ""}`}>
-                    {item.descricao}
-                  </span>
-                </label>
+                <div key={item.id} className="p-2 rounded hover:bg-accent/10 transition-colors">
+                  <p className="text-sm font-medium mb-2">{item.descricao}</p>
+                  <RadioGroup
+                    value={item.status === "pendente" ? undefined : item.status}
+                    onValueChange={(val) => changeStatus(item, val as ChecklistItemStatus)}
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <RadioGroupItem value="sim" id={`${item.id}-sim`} />
+                      <Label htmlFor={`${item.id}-sim`} className="text-xs cursor-pointer">Sim</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <RadioGroupItem value="nao" id={`${item.id}-nao`} />
+                      <Label htmlFor={`${item.id}-nao`} className="text-xs cursor-pointer">Não</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <RadioGroupItem value="nao_contem" id={`${item.id}-nc`} />
+                      <Label htmlFor={`${item.id}-nc`} className="text-xs cursor-pointer">Não contém</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
               ))}
             </CardContent>
           </Card>
@@ -130,11 +192,22 @@ export default function ChecklistView() {
           </CardContent>
         </Card>
 
-        <Button onClick={salvar} disabled={salvando} className="w-full py-5 font-bold">
-          <Save size={18} className="mr-2" />
-          {salvando ? "Salvando..." : "Salvar Checklist"}
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={salvar} disabled={salvando} className="flex-1 py-5 font-bold">
+            <Save size={18} className="mr-2" />
+            {salvando ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={gerarPDF} disabled={gerando} variant="outline" className="flex-1 py-5 font-bold">
+            <FileDown size={18} className="mr-2" />
+            {gerando ? "Gerando..." : "Exportar PDF"}
+          </Button>
+        </div>
       </main>
+
+      {/* Hidden PDF template */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <ChecklistPDF ref={pdfRef} checklist={checklist} itens={itens} observacoes={observacoes} />
+      </div>
     </div>
   );
 }
