@@ -18,6 +18,10 @@ export default function ChecklistNovo() {
   const [contratos, setContratos] = useState<ContratoSalvo[]>([]);
   const [contratoId, setContratoId] = useState("");
   const [clienteNome, setClienteNome] = useState("");
+  const [clienteEndereco, setClienteEndereco] = useState("");
+  const [clienteTelefone, setClienteTelefone] = useState("");
+  const [marcaMaquina, setMarcaMaquina] = useState("");
+  const [modeloMaquina, setModeloMaquina] = useState("");
   const [dataExecucao, setDataExecucao] = useState(new Date().toLocaleDateString("pt-BR"));
   const [salvando, setSalvando] = useState(false);
 
@@ -28,7 +32,15 @@ export default function ChecklistNovo() {
   const handleContratoChange = (id: string) => {
     setContratoId(id);
     const c = contratos.find(ct => ct.id === id);
-    if (c) setClienteNome(c.contratante_razao_social);
+    if (c) {
+      setClienteNome(c.contratante_razao_social);
+      setClienteEndereco(c.contratante_endereco || "");
+      if (c.equipamento_descricao) {
+        // Try to extract marca/modelo from equipamento_descricao
+        setMarcaMaquina("");
+        setModeloMaquina(c.equipamento_descricao);
+      }
+    }
   };
 
   const salvar = async () => {
@@ -40,6 +52,10 @@ export default function ChecklistNovo() {
         cliente_nome: clienteNome,
         data_execucao: dataExecucao,
         tecnico: TECNICO_FIXO,
+        marca_maquina: marcaMaquina,
+        modelo_maquina: modeloMaquina,
+        cliente_endereco: clienteEndereco,
+        cliente_telefone: clienteTelefone,
       });
       if (id) {
         toast({ title: "Checklist criado!" });
@@ -84,13 +100,45 @@ export default function ChecklistNovo() {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Dados do Checklist</CardTitle>
+            <CardTitle className="text-base">Dados do Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
               <Label>Nome do Cliente</Label>
               <Input value={clienteNome} onChange={e => setClienteNome(e.target.value)} placeholder="Nome do cliente" />
             </div>
+            <div>
+              <Label>Endereço</Label>
+              <Input value={clienteEndereco} onChange={e => setClienteEndereco(e.target.value)} placeholder="Endereço do cliente" />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={clienteTelefone} onChange={e => setClienteTelefone(e.target.value)} placeholder="Telefone do cliente" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Dados da Máquina</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label>Marca</Label>
+              <Input value={marcaMaquina} onChange={e => setMarcaMaquina(e.target.value)} placeholder="Marca da máquina" />
+            </div>
+            <div>
+              <Label>Modelo</Label>
+              <Input value={modeloMaquina} onChange={e => setModeloMaquina(e.target.value)} placeholder="Modelo da máquina" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Dados do Checklist</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
             <div>
               <Label>Técnico Responsável</Label>
               <Input value={TECNICO_FIXO} disabled className="bg-muted" />

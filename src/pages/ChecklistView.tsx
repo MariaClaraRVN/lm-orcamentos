@@ -2,16 +2,18 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import { ArrowLeft, Save, FileDown } from "lucide-react";
+import { ArrowLeft, Save, FileDown, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   buscarChecklist,
   atualizarItemChecklist,
   atualizarChecklist,
+  atualizarObservacaoItem,
   ChecklistSalvo,
   ChecklistItem,
   ChecklistItemStatus,
@@ -29,6 +31,7 @@ export default function ChecklistView() {
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [gerando, setGerando] = useState(false);
+  const [expandedObs, setExpandedObs] = useState<Record<string, boolean>>({});
   const pdfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,12 +55,30 @@ export default function ChecklistView() {
     }
   };
 
+  const changeObservacao = (itemId: string, obs: string) => {
+    setItens(prev => prev.map(i => i.id === itemId ? { ...i, observacao: obs } : i));
+  };
+
+  const salvarObservacaoItem = async (itemId: string) => {
+    const item = itens.find(i => i.id === itemId);
+    if (!item) return;
+    try {
+      await atualizarObservacaoItem(itemId, item.observacao);
+    } catch {
+      toast({ title: "Erro ao salvar observação", variant: "destructive" });
+    }
+  };
+
   const salvar = async () => {
     if (!id) return;
     setSalvando(true);
     try {
       const todosRespondidos = itens.every(i => i.status !== "pendente");
       await atualizarChecklist(id, { observacoes, concluido: todosRespondidos });
+      // Save individual item observations
+      for (const item of itens) {
+        await atualizarObservacaoItem(item.id, item.observacao);
+      }
       toast({ title: "Checklist salvo!" });
     } catch {
       toast({ title: "Erro ao salvar", variant: "destructive" });
@@ -75,17 +96,14 @@ export default function ChecklistView() {
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfW = pdf.internal.pageSize.getWidth();
       const pdfH = pdf.internal.pageSize.getHeight();
-      const ratio = canvas.width / canvas.height;
-      const imgW = pdfW;
-      const imgH = pdfW / ratio;
+      const pageHeightPx = (pdfH / pdfW) * canvas.width;
 
-      if (imgH <= pdfH) {
-        pdf.addImage(imgData, "PNG", 0, 0, imgW, imgH);
+      if (canvas.height <= pageHeightPx) {
+        pdf.addImage(imgData, "PNG", 0, 0, pdfW, (canvas.height / canvas.width) * pdfW);
       } else {
         let y = 0;
         const pageCanvas = document.createElement("canvas");
         pageCanvas.width = canvas.width;
-        const pageHeightPx = (pdfH / pdfW) * canvas.width;
         while (y < canvas.height) {
           const h = Math.min(pageHeightPx, canvas.height - y);
           pageCanvas.height = h;
@@ -113,13 +131,6 @@ export default function ChecklistView() {
   const total = itens.length;
   const progresso = total > 0 ? Math.round((respondidos / total) * 100) : 0;
 
-  const statusLabel = (s: ChecklistItemStatus) => {
-    if (s === "sim") return "Sim";
-    if (s === "nao") return "Não";
-    if (s === "nao_contem") return "Não contém";
-    return "Pendente";
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <PageHeader titulo="Checklist de Manutenção" />
@@ -134,6 +145,12 @@ export default function ChecklistView() {
             <div><span className="text-muted-foreground">Técnico:</span> <strong>{checklist.tecnico}</strong></div>
             <div><span className="text-muted-foreground">Data:</span> {checklist.data_execucao}</div>
           </div>
+          {(checklist.marca_maquina || checklist.modelo_maquina) && (
+            <div className="flex flex-wrap gap-4 text-sm mt-2">
+              {checklist.marca_maquina && <div><span className="text-muted-foreground">Marca:</span> <strong>{checklist.marca_maquina}</strong></div>}
+              {checklist.modelo_maquina && <div><span className="text-muted-foreground">Modelo:</span> <strong>{checklist.modelo_maquina}</strong></div>}
+            </div>
+          )}
           <div className="mt-3">
             <div className="flex items-center justify-between text-sm mb-1">
               <span>Progresso: {respondidos}/{total}</span>
@@ -172,6 +189,26 @@ export default function ChecklistView() {
                       <Label htmlFor={`${item.id}-nc`} className="text-xs cursor-pointer">Não contém</Label>
                     </div>
                   </RadioGroup>
+                  {/* Individual observation */}
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedObs(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      {expandedObs[item.id] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                      {item.observacao ? "Observação ✎" : "Adicionar observação"}
+                    </button>
+                    {expandedObs[item.id] && (
+                      <Input
+                        value={item.observacao}
+                        onChange={e => changeObservacao(item.id, e.target.value)}
+                        onBlur={() => salvarObservacaoItem(item.id)}
+                        placeholder="Observação sobre este item..."
+                        className="mt-1 text-xs h-8"
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -180,7 +217,7 @@ export default function ChecklistView() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Observações</CardTitle>
+            <CardTitle className="text-sm">Observações Gerais</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea

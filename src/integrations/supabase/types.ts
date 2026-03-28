@@ -20,6 +20,7 @@ export type Database = {
           checklist_id: string
           descricao: string
           id: string
+          observacao: string
           status: string
         }
         Insert: {
@@ -27,6 +28,7 @@ export type Database = {
           checklist_id: string
           descricao?: string
           id?: string
+          observacao?: string
           status?: string
         }
         Update: {
@@ -34,6 +36,7 @@ export type Database = {
           checklist_id?: string
           descricao?: string
           id?: string
+          observacao?: string
           status?: string
         }
         Relationships: [
@@ -48,32 +51,44 @@ export type Database = {
       }
       checklists: {
         Row: {
+          cliente_endereco: string
           cliente_nome: string
+          cliente_telefone: string
           concluido: boolean
           contrato_id: string | null
           created_at: string
           data_execucao: string
           id: string
+          marca_maquina: string
+          modelo_maquina: string
           observacoes: string
           tecnico: string
         }
         Insert: {
+          cliente_endereco?: string
           cliente_nome?: string
+          cliente_telefone?: string
           concluido?: boolean
           contrato_id?: string | null
           created_at?: string
           data_execucao?: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           observacoes?: string
           tecnico?: string
         }
         Update: {
+          cliente_endereco?: string
           cliente_nome?: string
+          cliente_telefone?: string
           concluido?: boolean
           contrato_id?: string | null
           created_at?: string
           data_execucao?: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           observacoes?: string
           tecnico?: string
         }
