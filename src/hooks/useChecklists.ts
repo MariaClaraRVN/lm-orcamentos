@@ -8,6 +8,7 @@ export interface ChecklistItem {
   descricao: string;
   categoria: string;
   status: ChecklistItemStatus;
+  observacao: string;
 }
 
 export interface ChecklistSalvo {
@@ -19,6 +20,10 @@ export interface ChecklistSalvo {
   tecnico: string;
   observacoes: string;
   concluido: boolean;
+  marca_maquina: string;
+  modelo_maquina: string;
+  cliente_endereco: string;
+  cliente_telefone: string;
   itens?: ChecklistItem[];
 }
 
@@ -51,6 +56,10 @@ export async function criarChecklist(dados: {
   cliente_nome: string;
   data_execucao: string;
   tecnico: string;
+  marca_maquina?: string;
+  modelo_maquina?: string;
+  cliente_endereco?: string;
+  cliente_telefone?: string;
 }): Promise<string | null> {
   const { data: checklist, error } = await supabase
     .from("checklists")
@@ -59,7 +68,11 @@ export async function criarChecklist(dados: {
       cliente_nome: dados.cliente_nome,
       data_execucao: dados.data_execucao,
       tecnico: dados.tecnico,
-    })
+      marca_maquina: dados.marca_maquina || "",
+      modelo_maquina: dados.modelo_maquina || "",
+      cliente_endereco: dados.cliente_endereco || "",
+      cliente_telefone: dados.cliente_telefone || "",
+    } as any)
     .select("id")
     .single();
 
@@ -87,7 +100,7 @@ export async function listarChecklists(): Promise<ChecklistSalvo[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) { console.error(error); return []; }
-  return (data ?? []) as ChecklistSalvo[];
+  return (data ?? []) as unknown as ChecklistSalvo[];
 }
 
 export async function buscarChecklist(id: string): Promise<ChecklistSalvo | null> {
@@ -104,13 +117,23 @@ export async function buscarChecklist(id: string): Promise<ChecklistSalvo | null
     .eq("checklist_id", id)
     .order("categoria", { ascending: true });
 
-  return { ...(data as ChecklistSalvo), itens: (itens ?? []) as ChecklistItem[] };
+  return { ...(data as unknown as ChecklistSalvo), itens: (itens ?? []) as unknown as ChecklistItem[] };
 }
 
-export async function atualizarItemChecklist(itemId: string, status: ChecklistItemStatus) {
+export async function atualizarItemChecklist(itemId: string, status: ChecklistItemStatus, observacao?: string) {
+  const updateData: any = { status };
+  if (observacao !== undefined) updateData.observacao = observacao;
   const { error } = await supabase
     .from("checklist_itens")
-    .update({ status })
+    .update(updateData)
+    .eq("id", itemId);
+  if (error) throw error;
+}
+
+export async function atualizarObservacaoItem(itemId: string, observacao: string) {
+  const { error } = await supabase
+    .from("checklist_itens")
+    .update({ observacao } as any)
     .eq("id", itemId);
   if (error) throw error;
 }

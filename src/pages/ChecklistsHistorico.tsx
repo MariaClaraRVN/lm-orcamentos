@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Trash2, ClipboardCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Plus, Trash2, ClipboardCheck, Search } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { listarChecklists, excluirChecklist, ChecklistSalvo } from "@/hooks/useChecklists";
 import { toast } from "@/hooks/use-toast";
@@ -10,6 +11,8 @@ export default function ChecklistsHistorico() {
   const navigate = useNavigate();
   const [lista, setLista] = useState<ChecklistSalvo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtroCliente, setFiltroCliente] = useState("");
+  const [filtroData, setFiltroData] = useState("");
 
   const carregar = () => {
     setLoading(true);
@@ -29,6 +32,12 @@ export default function ChecklistsHistorico() {
     }
   };
 
+  const listaFiltrada = lista.filter(c => {
+    const matchCliente = !filtroCliente || c.cliente_nome.toLowerCase().includes(filtroCliente.toLowerCase());
+    const matchData = !filtroData || c.data_execucao.includes(filtroData);
+    return matchCliente && matchData;
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <PageHeader titulo="Checklists de Manutenção" />
@@ -42,13 +51,32 @@ export default function ChecklistsHistorico() {
           </Button>
         </div>
 
+        {/* Filters */}
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <Search size={14} className="absolute left-2.5 top-2.5 text-muted-foreground" />
+            <Input
+              value={filtroCliente}
+              onChange={e => setFiltroCliente(e.target.value)}
+              placeholder="Filtrar por cliente..."
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
+          <Input
+            value={filtroData}
+            onChange={e => setFiltroData(e.target.value)}
+            placeholder="Filtrar por data..."
+            className="w-40 h-9 text-sm"
+          />
+        </div>
+
         {loading ? (
           <p className="text-center py-10 text-muted-foreground">Carregando...</p>
-        ) : lista.length === 0 ? (
+        ) : listaFiltrada.length === 0 ? (
           <p className="text-center py-10 text-muted-foreground">Nenhum checklist encontrado.</p>
         ) : (
           <div className="space-y-3">
-            {lista.map(c => (
+            {listaFiltrada.map(c => (
               <div key={c.id} className="border border-border rounded-lg p-4 bg-card flex items-center justify-between gap-3">
                 <Link to={`/checklist/${c.id}`} className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
