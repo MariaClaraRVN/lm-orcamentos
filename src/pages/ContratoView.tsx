@@ -201,6 +201,7 @@ export default function ContratoView() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Equipamento e Valores</CardTitle>
               </CardHeader>
+              <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label>Marca</Label>
