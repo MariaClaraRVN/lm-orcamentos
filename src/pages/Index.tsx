@@ -165,6 +165,27 @@ export default function Index() {
       <footer className="bg-[hsl(var(--brand-black))] text-gray-400 text-[10px] sm:text-xs text-center py-3">
         LM Manutenções © {new Date().getFullYear()} — Sistema de Gestão
       </footer>
+      {/* Password Change Dialog */}
+      <Dialog open={senhaDialogOpen} onOpenChange={setSenhaDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Trocar Senha</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nova Senha</Label>
+              <Input type="password" value={novaSenha} onChange={e => setNovaSenha(e.target.value)} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div>
+              <Label>Confirmar Senha</Label>
+              <Input type="password" value={confirmSenha} onChange={e => setConfirmSenha(e.target.value)} placeholder="Repita a senha" />
+            </div>
+            <Button onClick={trocarSenha} disabled={salvandoSenha} className="w-full">
+              {salvandoSenha ? "Salvando..." : "Alterar Senha"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
