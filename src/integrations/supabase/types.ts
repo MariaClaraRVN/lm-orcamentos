@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      checklist_itens: {
+        Row: {
+          categoria: string
+          checklist_id: string
+          descricao: string
+          feito: boolean
+          id: string
+        }
+        Insert: {
+          categoria?: string
+          checklist_id: string
+          descricao?: string
+          feito?: boolean
+          id?: string
+        }
+        Update: {
+          categoria?: string
+          checklist_id?: string
+          descricao?: string
+          feito?: boolean
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_itens_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          cliente_nome: string
+          concluido: boolean
+          contrato_id: string | null
+          created_at: string
+          data_execucao: string
+          id: string
+          observacoes: string
+          tecnico: string
+        }
+        Insert: {
+          cliente_nome?: string
+          concluido?: boolean
+          contrato_id?: string | null
+          created_at?: string
+          data_execucao?: string
+          id?: string
+          observacoes?: string
+          tecnico?: string
+        }
+        Update: {
+          cliente_nome?: string
+          concluido?: boolean
+          contrato_id?: string | null
+          created_at?: string
+          data_execucao?: string
+          id?: string
+          observacoes?: string
+          tecnico?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes: {
+        Row: {
+          cnpj: string
+          cpf: string
+          created_at: string
+          email: string
+          endereco: string
+          id: string
+          nome: string
+          nome_pessoa: string
+          telefone: string
+          tipo_pessoa: string
+        }
+        Insert: {
+          cnpj?: string
+          cpf?: string
+          created_at?: string
+          email?: string
+          endereco?: string
+          id?: string
+          nome?: string
+          nome_pessoa?: string
+          telefone?: string
+          tipo_pessoa?: string
+        }
+        Update: {
+          cnpj?: string
+          cpf?: string
+          created_at?: string
+          email?: string
+          endereco?: string
+          id?: string
+          nome?: string
+          nome_pessoa?: string
+          telefone?: string
+          tipo_pessoa?: string
+        }
+        Relationships: []
+      }
       conclusoes: {
         Row: {
           created_at: string
@@ -68,12 +180,14 @@ export type Database = {
           contratada_endereco: string
           contratada_razao_social: string
           contratante_cnpj: string
+          contratante_cpf: string
           contratante_endereco: string
           contratante_razao_social: string
           created_at: string
           data_contrato: string
           equipamento_descricao: string
           id: string
+          tipo_pessoa: string
           valor_mensal: string
           valor_visita_emergencia: string
         }
@@ -83,12 +197,14 @@ export type Database = {
           contratada_endereco?: string
           contratada_razao_social?: string
           contratante_cnpj?: string
+          contratante_cpf?: string
           contratante_endereco?: string
           contratante_razao_social?: string
           created_at?: string
           data_contrato?: string
           equipamento_descricao?: string
           id?: string
+          tipo_pessoa?: string
           valor_mensal?: string
           valor_visita_emergencia?: string
         }
@@ -98,12 +214,14 @@ export type Database = {
           contratada_endereco?: string
           contratada_razao_social?: string
           contratante_cnpj?: string
+          contratante_cpf?: string
           contratante_endereco?: string
           contratante_razao_social?: string
           created_at?: string
           data_contrato?: string
           equipamento_descricao?: string
           id?: string
+          tipo_pessoa?: string
           valor_mensal?: string
           valor_visita_emergencia?: string
         }
