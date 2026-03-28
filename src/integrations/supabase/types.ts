@@ -51,32 +51,44 @@ export type Database = {
       }
       checklists: {
         Row: {
+          cliente_endereco: string
           cliente_nome: string
+          cliente_telefone: string
           concluido: boolean
           contrato_id: string | null
           created_at: string
           data_execucao: string
           id: string
+          marca_maquina: string
+          modelo_maquina: string
           observacoes: string
           tecnico: string
         }
         Insert: {
+          cliente_endereco?: string
           cliente_nome?: string
+          cliente_telefone?: string
           concluido?: boolean
           contrato_id?: string | null
           created_at?: string
           data_execucao?: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           observacoes?: string
           tecnico?: string
         }
         Update: {
+          cliente_endereco?: string
           cliente_nome?: string
+          cliente_telefone?: string
           concluido?: boolean
           contrato_id?: string | null
           created_at?: string
           data_execucao?: string
           id?: string
+          marca_maquina?: string
+          modelo_maquina?: string
           observacoes?: string
           tecnico?: string
         }
