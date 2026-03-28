@@ -27,7 +27,8 @@ export interface DadosContrato {
   contratanteEndereco: string;
   contratanteCep: string;
   contratanteNumero: string;
-  equipamentoDescricao: string;
+  marcaMaquina: string;
+  modeloMaquina: string;
   valorVisitaEmergencia: string;
   valorMensal: string;
   cidade: string;
@@ -61,7 +62,8 @@ const initialData: DadosContrato = {
   contratanteEndereco: "",
   contratanteCep: "",
   contratanteNumero: "",
-  equipamentoDescricao: "",
+  marcaMaquina: "",
+  modeloMaquina: "",
   valorVisitaEmergencia: "",
   valorMensal: "",
   cidade: "Carapicuíba - SP",
@@ -207,7 +209,7 @@ export default function ContratoNovo() {
         contratante_cnpj: dados.contratanteCnpj,
         contratante_cpf: dados.contratanteCpf,
         contratante_endereco: endFull,
-        equipamento_descricao: dados.equipamentoDescricao,
+        equipamento_descricao: `${dados.marcaMaquina} - ${dados.modeloMaquina}`,
         valor_visita_emergencia: dados.valorVisitaEmergencia,
         valor_mensal: dados.valorMensal,
         cidade: dados.cidade,
@@ -350,17 +352,11 @@ export default function ContratoNovo() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Marca</Label>
-                <Input value={dados.equipamentoDescricao.split(" - ")[0] || ""} onChange={e => {
-                  const modelo = dados.equipamentoDescricao.split(" - ")[1] || "";
-                  handleChange("equipamentoDescricao", modelo ? `${e.target.value} - ${modelo}` : e.target.value);
-                }} placeholder="Ex: Cummins" />
+                <Input value={dados.marcaMaquina} onChange={e => handleChange("marcaMaquina", e.target.value)} placeholder="Ex: Cummins" />
               </div>
               <div>
                 <Label>Modelo</Label>
-                <Input value={dados.equipamentoDescricao.split(" - ")[1] || ""} onChange={e => {
-                  const marca = dados.equipamentoDescricao.split(" - ")[0] || "";
-                  handleChange("equipamentoDescricao", `${marca} - ${e.target.value}`);
-                }} placeholder="Ex: 150kVA" />
+                <Input value={dados.modeloMaquina} onChange={e => handleChange("modeloMaquina", e.target.value)} placeholder="Ex: 150kVA" />
               </div>
             </div>
           </CardContent>
