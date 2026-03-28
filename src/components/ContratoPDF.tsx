@@ -5,6 +5,8 @@ interface ContratoPDFProps {
   dados: DadosContrato;
 }
 
+const GREEN = "#1d6b1d";
+
 const pageStyle: React.CSSProperties = {
   width: "794px",
   minHeight: "1123px",
@@ -24,6 +26,7 @@ const titleStyle: React.CSSProperties = {
   textAlign: "center",
   marginBottom: "4px",
   textTransform: "uppercase",
+  color: GREEN,
 };
 
 const clausulaTitle: React.CSSProperties = {
@@ -31,6 +34,7 @@ const clausulaTitle: React.CSSProperties = {
   fontWeight: 700,
   marginTop: "14px",
   marginBottom: "4px",
+  color: GREEN,
 };
 
 const subItem: React.CSSProperties = {
@@ -44,6 +48,11 @@ const field = (value: string, placeholder: string) =>
 const ContratoPDF = React.forwardRef<HTMLDivElement, ContratoPDFProps>(
   ({ dados }, ref) => {
     const d = dados;
+    const isPF = d.tipoPessoa === "fisica";
+    const docLabel = isPF ? "CPF" : "CNPJ";
+    const docContratante = isPF ? d.contratanteCpf : d.contratanteCnpj;
+    const inscricaoTexto = isPF ? "inscrito(a) no CPF sob o nº" : "inscrita no CNPJ sob o nº";
+    const denominacao = isPF ? "doravante denominado(a)" : "doravante denominada";
 
     return (
       <div ref={ref} style={{ display: "none" }}>
@@ -57,7 +66,7 @@ const ContratoPDF = React.forwardRef<HTMLDivElement, ContratoPDFProps>(
           <div style={{ ...titleStyle, marginBottom: "18px" }}>PREVENTIVA DE GERADOR</div>
 
           <p style={{ textAlign: "justify", marginBottom: "12px" }}>
-            Pelo presente instrumento particular de contrato de prestação de serviços de manutenção preventiva de grupo gerador, de um lado <strong>{field(d.contratadaRazaoSocial, "RAZÃO SOCIAL DA CONTRATADA")}</strong>, inscrita no CNPJ sob o nº <strong>{field(d.contratadaCnpj, "CNPJ DA CONTRATADA")}</strong>, estabelecida à {field(d.contratadaEndereco, "ENDEREÇO COMPLETO DA CONTRATADA")}, doravante denominada <strong>CONTRATADA</strong>, e, de outro lado, <strong>{field(d.contratanteRazaoSocial, "RAZÃO SOCIAL DA CONTRATANTE")}</strong>, inscrita no CNPJ sob o nº <strong>{field(d.contratanteCnpj, "CNPJ DA CONTRATANTE")}</strong>, estabelecida à {field(d.contratanteEndereco, "ENDEREÇO COMPLETO DA CONTRATANTE")}, doravante denominada <strong>CONTRATANTE</strong>, têm entre si justo e contratado o que segue:
+            Pelo presente instrumento particular de contrato de prestação de serviços de manutenção preventiva de grupo gerador, de um lado <strong>{field(d.contratadaRazaoSocial, "RAZÃO SOCIAL DA CONTRATADA")}</strong>, inscrita no CNPJ sob o nº <strong>{field(d.contratadaCnpj, "CNPJ DA CONTRATADA")}</strong>, estabelecida à {field(d.contratadaEndereco, "ENDEREÇO COMPLETO DA CONTRATADA")}, doravante denominada <strong>CONTRATADA</strong>, e, de outro lado, <strong>{field(isPF ? d.contratanteNomePessoa || d.contratanteRazaoSocial : d.contratanteRazaoSocial, isPF ? "NOME DO CONTRATANTE" : "RAZÃO SOCIAL DA CONTRATANTE")}</strong>, {inscricaoTexto} <strong>{field(docContratante, `${docLabel} DO CONTRATANTE`)}</strong>, {isPF ? "residente à" : "estabelecida à"} {field(d.contratanteEndereco, "ENDEREÇO COMPLETO DO CONTRATANTE")}, {denominacao} <strong>CONTRATANTE</strong>, têm entre si justo e contratado o que segue:
           </p>
 
           <div style={clausulaTitle}>CLÁUSULA PRIMEIRA – OBJETO</div>
@@ -223,7 +232,7 @@ const ContratoPDF = React.forwardRef<HTMLDivElement, ContratoPDFProps>(
                 CONTRATANTE
               </div>
               <div style={{ fontSize: "11px", color: "#555", marginTop: "2px" }}>
-                {field(d.contratanteRazaoSocial, "Razão Social")}
+                {field(isPF ? d.contratanteNomePessoa || d.contratanteRazaoSocial : d.contratanteRazaoSocial, isPF ? "Nome" : "Razão Social")}
               </div>
             </div>
           </div>
