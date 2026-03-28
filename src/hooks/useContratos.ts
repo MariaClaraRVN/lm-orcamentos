@@ -8,12 +8,14 @@ export interface ContratoSalvo {
   contratada_endereco: string;
   contratante_razao_social: string;
   contratante_cnpj: string;
+  contratante_cpf: string;
   contratante_endereco: string;
   equipamento_descricao: string;
   valor_visita_emergencia: string;
   valor_mensal: string;
   cidade: string;
   data_contrato: string;
+  tipo_pessoa: string;
 }
 
 export async function salvarContrato(dados: Omit<ContratoSalvo, "id" | "created_at">) {

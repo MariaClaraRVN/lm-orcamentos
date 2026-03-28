@@ -13,6 +13,9 @@ import OrdemServicoView from "./pages/OrdemServicoView";
 import ContratoNovo from "./pages/ContratoNovo";
 import ContratosHistorico from "./pages/ContratosHistorico";
 import ContratoView from "./pages/ContratoView";
+import ChecklistNovo from "./pages/ChecklistNovo";
+import ChecklistView from "./pages/ChecklistView";
+import ChecklistsHistorico from "./pages/ChecklistsHistorico";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +38,9 @@ function App() {
           <Route path="/contrato/novo" element={<ContratoNovo />} />
           <Route path="/contratos/historico" element={<ContratosHistorico />} />
           <Route path="/contrato/:id" element={<ContratoView />} />
+          <Route path="/checklist/novo" element={<ChecklistNovo />} />
+          <Route path="/checklist/:id" element={<ChecklistView />} />
+          <Route path="/checklists/historico" element={<ChecklistsHistorico />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

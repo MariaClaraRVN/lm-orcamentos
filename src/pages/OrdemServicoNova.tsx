@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { validarCPF, validarCNPJ } from "@/lib/validators";
 import { Save, Camera, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,14 @@ export default function OrdemServicoNova() {
     const nome = tipoPessoa === "juridica" ? clienteNome.trim() : clienteNomePessoa.trim();
     if (!nome) {
       toast({ title: "Campo obrigatório", description: tipoPessoa === "juridica" ? "Preencha o nome da empresa." : "Preencha o nome do cliente.", variant: "destructive" });
+      return;
+    }
+    if (tipoPessoa === "juridica" && clienteCnpj && !validarCNPJ(clienteCnpj)) {
+      toast({ title: "CNPJ inválido", description: "Verifique o CNPJ informado.", variant: "destructive" });
+      return;
+    }
+    if (tipoPessoa === "fisica" && clienteCpf && !validarCPF(clienteCpf)) {
+      toast({ title: "CPF inválido", description: "Verifique o CPF informado.", variant: "destructive" });
       return;
     }
     if (!marca.trim() || !modelo.trim()) {

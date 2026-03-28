@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, History, FileText, Wrench, ClipboardList, ScrollText } from "lucide-react";
+import { Plus, History, FileText, Wrench, ClipboardList, ScrollText, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,11 +88,20 @@ export default function Index() {
                   <span className="font-bold text-sm">Criar Contrato</span>
                   <span className="text-[10px] sm:text-xs opacity-70">Manutenção preventiva de gerador</span>
                 </Button>
+                <Button
+                  variant="outline"
+                  className="h-16 sm:h-20 flex flex-col gap-1 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => { setDialogOpen(false); navigate("/checklist/novo"); }}
+                >
+                  <ClipboardCheck size={22} />
+                  <span className="font-bold text-sm">Criar Checklist</span>
+                  <span className="text-[10px] sm:text-xs opacity-70">Verificação de manutenção preventiva</span>
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
 
-          <div className="grid grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
             <Link to="/historico">
               <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
                 <History size={18} className="mx-auto mb-2 text-primary" />
@@ -109,6 +118,12 @@ export default function Index() {
               <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
                 <ScrollText size={18} className="mx-auto mb-2 text-primary" />
                 <span className="text-xs sm:text-sm font-medium text-foreground">Contratos</span>
+              </div>
+            </Link>
+            <Link to="/checklists/historico">
+              <div className="border border-border rounded-lg p-3 sm:p-4 hover:border-primary hover:bg-accent/10 transition-colors cursor-pointer">
+                <ClipboardCheck size={18} className="mx-auto mb-2 text-primary" />
+                <span className="text-xs sm:text-sm font-medium text-foreground">Checklists</span>
               </div>
             </Link>
           </div>

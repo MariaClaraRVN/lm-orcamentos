@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, FileDown, Eye, History } from "lucide-react";
+import { validarCPF, validarCNPJ } from "@/lib/validators";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,6 +86,14 @@ export default function OrcamentoNovo() {
     const nome = tipoPessoa === "juridica" ? clienteNome.trim() : clienteNomePessoa.trim();
     if (!nome) {
       toast({ title: "Campo obrigatório", description: tipoPessoa === "juridica" ? "Preencha o nome da empresa." : "Preencha o nome do cliente.", variant: "destructive" });
+      return;
+    }
+    if (tipoPessoa === "juridica" && clienteCnpj && !validarCNPJ(clienteCnpj)) {
+      toast({ title: "CNPJ inválido", description: "Verifique o CNPJ informado.", variant: "destructive" });
+      return;
+    }
+    if (tipoPessoa === "fisica" && clienteCpf && !validarCPF(clienteCpf)) {
+      toast({ title: "CPF inválido", description: "Verifique o CPF informado.", variant: "destructive" });
       return;
     }
     if (!itens.some((i) => i.descricao.trim())) {
