@@ -42,7 +42,7 @@ const maskTelefone = (v: string) => {
 };
 const sanitizeFileName = (name: string) => name.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_");
 
-const LIMITS = { nome: 50, endereco: 80, descricao: 80, observacoes: 80 };
+const LIMITS = { nome: 50, endereco: 80, descricao: 80, observacoes: 180 };
 
 export default function OrcamentoNovo() {
   const location = useLocation();
